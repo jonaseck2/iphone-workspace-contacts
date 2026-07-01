@@ -1,0 +1,9 @@
+# Personal, machine-local Claude Code config — never commit
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Worktrees created during plan execution
+.worktrees/
+
+# OS / editor noise
+.DS_Store
