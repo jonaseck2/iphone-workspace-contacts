@@ -52,7 +52,7 @@ private func makeSession() -> URLSession {
             return (resp, Data())
         }
         let fetcher = URLSessionHTTPFetcher(session: makeSession())
-        await #expect(throws: HTTPFetchError.status(403)) {
+        await #expect(throws: HTTPFetchError.status(403, body: "")) {
             _ = try await fetcher.get(URL(string: "https://example.com/x")!, bearerToken: "TOK")
         }
     }
