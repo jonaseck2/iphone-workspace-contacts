@@ -48,7 +48,22 @@ The app cannot authenticate until these exist — set them up in the Imeto Googl
 1. Create an **OAuth 2.0 Client ID** of type **iOS** for bundle id `com.imeto.workspacecontacts.app`.
 2. Copy the **iOS client ID** (`NNN-xxxx.apps.googleusercontent.com`) into `app/project.yml` at `GIDClientID`.
 3. Compute the **reversed client ID** (`com.googleusercontent.apps.NNN-xxxx`) and put it in `app/project.yml` under `CFBundleURLTypes → CFBundleURLSchemes`.
-4. Ensure the **People API** is enabled and **directory sharing** is on for the domain.
+4. **Enable the People API** on the project, and ensure **directory sharing** is on for the domain.
+   Without the API enabled, sign-in succeeds but the first fetch returns `HTTP 403 …
+   "reason": "SERVICE_DISABLED"` ("People API has not been used in project NNN before or it is
+   disabled"). Enable it (propagation can take a few minutes):
+
+   ```bash
+   # Requires gcloud CLI authenticated (`gcloud auth login`) with rights on the project.
+   PROJECT_ID=your-gcp-project-id            # numeric id also works, e.g. 950349872392
+   gcloud services enable people.googleapis.com --project="$PROJECT_ID"
+
+   # Verify it's active:
+   gcloud services list --enabled --project="$PROJECT_ID" --filter="config.name:people.googleapis.com"
+   ```
+   (GUI equivalent: APIs & Services → Library → "People API" → Enable.) Directory sharing is a
+   Workspace **Admin console** setting (Directory → Directory settings → Contact sharing), not a
+   `gcloud` toggle.
 
 Until these are filled, Tasks 1–4 still build; only Task 5's live sign-in requires them.
 
