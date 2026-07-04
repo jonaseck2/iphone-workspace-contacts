@@ -1,4 +1,0 @@
-module WorkspaceContactsCore {
-    header "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/WorkspaceContactsCore-Swift.h"
-    requires objc
-}

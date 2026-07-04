@@ -7,3 +7,6 @@ CLAUDE.local.md
 
 # OS / editor noise
 .DS_Store
+
+# SwiftPM build artifacts
+.build/
