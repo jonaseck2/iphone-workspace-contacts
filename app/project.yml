@@ -26,10 +26,10 @@ targets:
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         # --- FILL THESE from the Imeto Google Cloud iOS OAuth client (see plan prerequisites) ---
-        GIDClientID: YOUR_IOS_CLIENT_ID.apps.googleusercontent.com
+        GIDClientID: 950349872392-8arhv8529ipt6vue4326c82atbte83f0.apps.googleusercontent.com
         CFBundleURLTypes:
           - CFBundleURLSchemes:
-              - com.googleusercontent.apps.YOUR_IOS_CLIENT_ID
+              - com.googleusercontent.apps.950349872392-8arhv8529ipt6vue4326c82atbte83f0
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.imeto.workspacecontacts.app

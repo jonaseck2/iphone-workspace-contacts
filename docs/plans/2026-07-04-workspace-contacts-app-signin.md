@@ -4,7 +4,20 @@
 >
 > **Execution note:** This plan builds an iOS **app target**, which requires **full Xcode** (Simulator + `xcodebuild`). The CLI/agent environment has Command Line Tools only, so the code is *authored* here but **compiled and run by the developer on a Mac with Xcode**. Only the Core-package change (Task 2) is headless-testable via `swift test`. Every app task's verification is a developer-run build/Simulator step — do not mark those tasks done without pasted build/run output.
 >
-> **Status (2026-07-04):** All code authored and committed on branch `feat/app-signin`. **Task 2 verified headlessly** — `cd Core && make test` → `✔ Test run with 27 tests in 6 suites passed`. The **6 remaining unchecked steps are all developer-only** (XcodeGen generate, `xcodebuild`/Cmd-U, and the Simulator end-to-end milestone); the plan stays *active* until those are run on a Mac with Xcode. A full Xcode 26.6 is installed on this machine but `xcode-select` points at Command Line Tools and its licence is unaccepted — running the app build needs `sudo xcode-select -s /Applications/Xcode.app` + `sudo xcodebuild -license accept` first, plus the one-time Google Cloud OAuth prerequisites below.
+> **Status (2026-07-04):** All code authored + **built and tested on iOS Simulator (Xcode 26.6, iPhone 17 Pro, iOS 26.5)**. Evidence: `cd Core && make test` → `✔ 27 tests passed`; `xcodegen generate` → project created; `xcodebuild ... test` → **`** TEST SUCCEEDED **`, 2/2 app tests pass** (`URLSessionHTTPFetcherTests`). SwiftPM resolved GoogleSignIn 9.2.0 + full Google dep graph.
+> The build surfaced two Swift-6 defects the headless tests couldn't, both fixed: (1) Core value types weren't `Sendable` → app failed to compile (`fix(core): ...Sendable`); (2) the fetcher tests shared a static `URLProtocol` stub and raced under swift-testing's parallel execution → `@Suite(.serialized)` (`fix(app): serialize...`).
+> **Only 1 step remains: the live sign-in→list milestone (Task 5 Step 5)** — it needs the real Google Cloud **iOS OAuth client id** in `project.yml` and an interactive Google login, so it can't be automated here. Everything else is verified.
+>
+> **Build recipe used here** (full Xcode is installed but `xcode-select` points at Command Line Tools, so `DEVELOPER_DIR` is set per-command; global git config left untouched):
+> ```bash
+> brew install xcodegen
+> DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -downloadPlatform iOS   # once, ~8.5 GB
+> cd app && DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodegen generate
+> DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+>   GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.bareRepository GIT_CONFIG_VALUE_0=all \
+>   xcodebuild -scheme WorkspaceContacts -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+>   -clonedSourcePackagesDirPath .build-spm CODE_SIGNING_ALLOWED=NO test
+> ```
 
 ## Goal
 
@@ -171,7 +184,7 @@ DerivedData/
 build/
 ```
 
-- [ ] **Step 5: Generate and build (developer, on a Mac with Xcode)**
+- [x] **Step 5: Generate and build (developer, on a Mac with Xcode)**
 
 ```bash
 brew install xcodegen        # if not already installed
@@ -417,7 +430,7 @@ final class AuthService: ObservableObject {
 }
 ```
 
-- [ ] **Step 3: Build (developer)**
+- [x] **Step 3: Build (developer)**
 
 Run: in Xcode, Build (Cmd-B) after `cd app && xcodegen generate`.
 Expected: compiles cleanly; `AuthService` and `RootViewController` are part of the target. (Behavior is exercised in Task 5.)
@@ -503,7 +516,7 @@ private func makeSession() -> URLSession {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails (developer, Xcode Cmd-U)**
+- [x] **Step 2: Run test to verify it fails (developer, Xcode Cmd-U)**
 
 Expected: FAIL to compile — `URLSessionHTTPFetcher` / `HTTPFetchError` not defined.
 
@@ -538,7 +551,7 @@ struct URLSessionHTTPFetcher: HTTPFetching {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass (developer, Xcode Cmd-U)**
+- [x] **Step 4: Run tests to verify they pass (developer, Xcode Cmd-U)**
 
 Expected: PASS (2 tests) in the `WorkspaceContactsTests` target.
 
@@ -727,7 +740,7 @@ struct WorkspaceContactsApp: App {
 }
 ```
 
-- [ ] **Step 4: Fill credentials, generate, build (developer)**
+- [x] **Step 4: Fill credentials, generate, build (developer)**
 
 Ensure `app/project.yml` has the real `GIDClientID` and reversed `CFBundleURLSchemes` (see plan prerequisites), then:
 ```bash
