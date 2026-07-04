@@ -20,7 +20,7 @@ Runnable check for the whole plan:
 cd Core && swift test
 ```
 
-Expected: build succeeds and **all tests pass** — Task 1 scaffold (1), decoding (2), phone normalization (7), directory client (3), contact diff (7) = **20 tests**, reported by swift-testing as "Test run with 20 tests passed". This green `swift test` is the verification anchor for the app-integration plan that follows.
+Expected: build succeeds and **all tests pass** — Task 1 scaffold (1), decoding (2), phone normalization (7), directory client (4), contact diff (7) = **21 tests**, reported by swift-testing as "Test run with 21 tests passed". This green `swift test` is the verification anchor for the app-integration plan that follows.
 
 **Architecture:** A standalone SwiftPM library target (`WorkspaceContactsCore`) with a swift-testing test target. The diff engine is a pure function over value types, the directory client takes an injectable HTTP fetcher, and everything decodes/transforms plain `Foundation` types. This keeps it runnable on macOS via `swift test` with zero Xcode/device.
 
@@ -49,7 +49,7 @@ Expected: build succeeds and **all tests pass** — Task 1 scaffold (1), decodin
 - Consumes: nothing.
 - Produces: a buildable `WorkspaceContactsCore` library target and a runnable swift-testing test target.
 
-- [ ] **Step 1: Create `Package.swift`**
+- [x] **Step 1: Create `Package.swift`**
 
 ```swift
 // swift-tools-version:5.9
@@ -71,7 +71,7 @@ let package = Package(
 )
 ```
 
-- [ ] **Step 2: Create a placeholder source file**
+- [x] **Step 2: Create a placeholder source file**
 
 ```swift
 // Core/Sources/WorkspaceContactsCore/WorkspaceContactsCore.swift
@@ -83,7 +83,7 @@ public enum WorkspaceContactsCore {
 }
 ```
 
-- [ ] **Step 3: Write a scaffold test (swift-testing)**
+- [x] **Step 3: Write a scaffold test (swift-testing)**
 
 ```swift
 // Core/Tests/WorkspaceContactsCoreTests/ScaffoldTests.swift
@@ -97,12 +97,12 @@ import Testing
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd Core && swift test`
 Expected: build succeeds, `packageVersionIsSet` PASSES (swift-testing reports "Test run with 1 test passed").
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add Core/Package.swift Core/Sources Core/Tests
@@ -129,7 +129,7 @@ git commit -m "feat(core): scaffold WorkspaceContactsCore swift package"
     `people: [DirectoryPerson]`, `nextPageToken: String?`, `nextSyncToken: String?`.
   - `public static func ListDirectoryPeopleResponse.decode(_ data: Data) throws -> ListDirectoryPeopleResponse`.
 
-- [ ] **Step 1: Write the failing test (swift-testing)**
+- [x] **Step 1: Write the failing test (swift-testing)**
 
 ```swift
 // Core/Tests/WorkspaceContactsCoreTests/PeopleAPIDecodingTests.swift
@@ -207,12 +207,12 @@ import Foundation
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd Core && swift test --filter PeopleAPIDecodingTests`
 Expected: FAIL to compile — `ListDirectoryPeopleResponse` / `DirectoryPerson` not defined.
 
-- [ ] **Step 3: Write `DirectoryPerson`**
+- [x] **Step 3: Write `DirectoryPerson`**
 
 ```swift
 // Core/Sources/WorkspaceContactsCore/DirectoryPerson.swift
@@ -257,7 +257,7 @@ public struct DirectoryPerson: Equatable {
 }
 ```
 
-- [ ] **Step 4: Write the People API decoding**
+- [x] **Step 4: Write the People API decoding**
 
 ```swift
 // Core/Sources/WorkspaceContactsCore/PeopleAPIResponse.swift
@@ -344,12 +344,12 @@ private struct RawPerson: Decodable {
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `cd Core && swift test --filter PeopleAPIDecodingTests`
 Expected: PASS (2 tests).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Core/Sources Core/Tests
@@ -371,7 +371,7 @@ git commit -m "feat(core): decode People API listDirectoryPeople into DirectoryP
   Returns a `+`-prefixed digit string of length 8–15, or `nil` if the input can't be
   normalized. `defaultCountryCode` is digits only (e.g. `"46"`).
 
-- [ ] **Step 1: Write the failing test (swift-testing)**
+- [x] **Step 1: Write the failing test (swift-testing)**
 
 ```swift
 // Core/Tests/WorkspaceContactsCoreTests/PhoneNormalizerTests.swift
@@ -419,12 +419,12 @@ import Testing
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd Core && swift test --filter PhoneNormalizerTests`
 Expected: FAIL to compile — `PhoneNormalizer` not defined.
 
-- [ ] **Step 3: Write the normalizer**
+- [x] **Step 3: Write the normalizer**
 
 ```swift
 // Core/Sources/WorkspaceContactsCore/PhoneNormalizer.swift
@@ -464,12 +464,12 @@ public enum PhoneNormalizer {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd Core && swift test --filter PhoneNormalizerTests`
 Expected: PASS (7 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add Core/Sources Core/Tests
@@ -495,7 +495,7 @@ git commit -m "feat(core): add heuristic E.164 phone normalizer"
   - The client follows `nextPageToken` until absent, accumulating people, and returns the
     final page's `nextSyncToken`.
 
-- [ ] **Step 1: Write the failing test (swift-testing)**
+- [x] **Step 1: Write the failing test (swift-testing)**
 
 ```swift
 // Core/Tests/WorkspaceContactsCoreTests/DirectoryClientTests.swift
@@ -574,12 +574,12 @@ private final class StubFetcher: HTTPFetching, @unchecked Sendable {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd Core && swift test --filter DirectoryClientTests`
 Expected: FAIL to compile — `HTTPFetching` / `DirectoryClient` not defined.
 
-- [ ] **Step 3: Write the client**
+- [x] **Step 3: Write the client**
 
 ```swift
 // Core/Sources/WorkspaceContactsCore/DirectoryClient.swift
@@ -649,12 +649,12 @@ public struct DirectoryClient {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd Core && swift test --filter DirectoryClientTests`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add Core/Sources Core/Tests
@@ -682,7 +682,7 @@ git commit -m "feat(core): add DirectoryClient with paging and syncToken handlin
     is absent from the (phone-eligible) fetched set. Output order: creates, then updates,
     then deletes; within each group, input order is preserved.
 
-- [ ] **Step 1: Write the failing test (swift-testing)**
+- [x] **Step 1: Write the failing test (swift-testing)**
 
 ```swift
 // Core/Tests/WorkspaceContactsCoreTests/ContactSyncTests.swift
@@ -779,12 +779,12 @@ import Testing
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd Core && swift test --filter ContactSyncTests`
 Expected: FAIL to compile — `ContactSync` / `SyncedContactRef` / `ContactOp` / `contentHash` not defined.
 
-- [ ] **Step 3: Write the diff engine**
+- [x] **Step 3: Write the diff engine**
 
 ```swift
 // Core/Sources/WorkspaceContactsCore/ContactSync.swift
@@ -873,17 +873,17 @@ public enum ContactSync {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd Core && swift test --filter ContactSyncTests`
 Expected: PASS (7 tests).
 
-- [ ] **Step 5: Run the whole suite**
+- [x] **Step 5: Run the whole suite**
 
 Run: `cd Core && swift test`
 Expected: PASS — all tests across Tasks 1–5 green (20 tests total).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Core/Sources Core/Tests
