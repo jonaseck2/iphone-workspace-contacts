@@ -56,4 +56,35 @@ private func person(_ id: String, given: String, family: String, phone: String) 
         // cleanup group
         try writer.removeAll()
     }
+
+    /// removeAll() must delete the group's *members*, not just the (empty) group. This exercises the
+    /// path createReadUpdateDelete skips (it deletes its one contact by identifier before removeAll).
+    /// Lives in this same serialized suite so it never runs concurrently with the Contacts writes
+    /// above (swift-testing parallelizes across suites, and they share the one address book).
+    @Test func removeAllDeletesGroupMembers() throws {
+        guard requireAuthorized() else {
+            Issue.record("Contacts not authorized; run `xcrun simctl privacy booted grant contacts com.imeto.workspacecontacts.app`.")
+            return
+        }
+        let store = CNContactStore()
+        let writer = CNContactStoreWriter()
+        try writer.removeAll()
+
+        _ = try writer.create(person("ra1", given: "Alpha", family: "RemoveAllTest", phone: "+46701111111"))
+        _ = try writer.create(person("ra2", given: "Beta", family: "RemoveAllTest", phone: "+46702222222"))
+
+        // The two we just created exist in the address book (match by our unique family name,
+        // so a leftover from another test can't skew the count).
+        let mineBefore = try store.unifiedContacts(
+            matching: CNContact.predicateForContacts(matchingName: "RemoveAllTest"),
+            keysToFetch: [CNContactGivenNameKey as CNKeyDescriptor])
+        #expect(mineBefore.count == 2)
+
+        try writer.removeAll()
+
+        let mineAfter = try store.unifiedContacts(
+            matching: CNContact.predicateForContacts(matchingName: "RemoveAllTest"),
+            keysToFetch: [CNContactGivenNameKey as CNKeyDescriptor])
+        #expect(mineAfter.isEmpty)
+    }
 }

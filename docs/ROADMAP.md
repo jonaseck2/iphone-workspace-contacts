@@ -13,17 +13,14 @@ _Actively building. Link the active plan._
   Core logic package shipped ✅ (see archive).
 - App Plan A shipped ✅ (signed-in directory list; see archive) — colleague list loads live on the
   Simulator against the Imeto Workspace directory.
-- **App Plan B — sync to Contacts** (designing → planning). Design spec:
-  [`plans/2026-07-04-sync-to-contacts-design.md`](plans/2026-07-04-sync-to-contacts-design.md).
-  Executor seam in Core + `CNContactStore` writer in app, one-time consent, incremental sync via
-  `syncToken`, `CNGroup` tagging, remove-all, sign-out cleanup, `BGAppRefreshTask`. Verified on
-  Simulator; device caller-ID deferred.
+- App Plan B shipped ✅ (sync to Contacts; see archive) — directory writes to the device address
+  book, kept in sync, with a per-row on-device/cloud badge; verified on Simulator.
 
 ## Next
 
 _Decided, not started. A spec may exist; the plan doesn't yet._
 
-- _(nothing queued — App Plan B is active above)_
+- _(nothing queued)_
 
 ## Later
 
@@ -31,6 +28,9 @@ _Ideas worth keeping, not yet committed to._
 
 - Real E.164 library (PhoneNumberKit) if single-region heuristic proves insufficient.
 - Device caller-ID verification on a physical iPhone (needs paid Apple Developer account).
+- `syncToken`-based incremental fetch (needs deletion-marker handling in Core; Plan B does full-fetch diff).
+- Selective per-contact sync (tap a row to include/exclude) — deferred; conflicts with auto-sync-all's caller-ID-for-everyone goal.
+- Batched `CNSaveRequest` for large directories (Plan B does one save per op).
 
 ---
 

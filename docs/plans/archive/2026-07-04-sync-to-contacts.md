@@ -40,7 +40,7 @@
 - Consumes: existing `SyncedContactRef`.
 - Produces: `SyncedContactRef: Equatable, Codable, Sendable`; `public struct SyncState: Codable, Equatable, Sendable { public var refs: [SyncedContactRef]; public init(refs: [SyncedContactRef] = []) }`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```swift
 // Core/Tests/WorkspaceContactsCoreTests/SyncStateTests.swift
@@ -65,12 +65,12 @@ import Foundation
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd Core && make test FILTER=SyncStateTests`
 Expected: FAIL to compile — `SyncState` not defined (and `SyncedContactRef` not `Codable`).
 
-- [ ] **Step 3: Add conformances to `SyncedContactRef`**
+- [x] **Step 3: Add conformances to `SyncedContactRef`**
 
 In `Core/Sources/WorkspaceContactsCore/ContactSync.swift`, change the declaration line:
 
@@ -78,7 +78,7 @@ In `Core/Sources/WorkspaceContactsCore/ContactSync.swift`, change the declaratio
 public struct SyncedContactRef: Equatable, Codable, Sendable {
 ```
 
-- [ ] **Step 4: Create `SyncState`**
+- [x] **Step 4: Create `SyncState`**
 
 ```swift
 // Core/Sources/WorkspaceContactsCore/SyncState.swift
@@ -95,12 +95,12 @@ public struct SyncState: Codable, Equatable, Sendable {
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `cd Core && make test FILTER=SyncStateTests`
 Expected: PASS (2 tests).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Core/Sources/WorkspaceContactsCore/ContactSync.swift Core/Sources/WorkspaceContactsCore/SyncState.swift Core/Tests/WorkspaceContactsCoreTests/SyncStateTests.swift
@@ -122,7 +122,7 @@ git commit -m "feat(core): SyncedContactRef Codable/Sendable + SyncState"
   - `public enum ContactSyncExecutor { public struct Failure: Equatable { public let op: ContactOp; public let message: String }; public struct ExecutionResult: Equatable { public let refs: [SyncedContactRef]; public let failures: [Failure] }; public static func apply(_ ops: [ContactOp], using store: ContactStoreWriting, existing: [SyncedContactRef], defaultCountryCode: String) -> ExecutionResult }`
   - `refs` in the result are sorted by `resourceName` (deterministic).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```swift
 // Core/Tests/WorkspaceContactsCoreTests/ContactSyncExecutorTests.swift
@@ -207,12 +207,12 @@ private final class FakeStore: ContactStoreWriting, @unchecked Sendable {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd Core && make test FILTER=ContactSyncExecutorTests`
 Expected: FAIL to compile — `ContactStoreWriting` / `ContactSyncExecutor` not defined.
 
-- [ ] **Step 3: Implement the protocol and executor**
+- [x] **Step 3: Implement the protocol and executor**
 
 ```swift
 // Core/Sources/WorkspaceContactsCore/ContactSyncExecutor.swift
@@ -290,17 +290,17 @@ public enum ContactSyncExecutor {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd Core && make test FILTER=ContactSyncExecutorTests`
 Expected: PASS (4 tests).
 
-- [ ] **Step 5: Run the full Core suite (no regressions)**
+- [x] **Step 5: Run the full Core suite (no regressions)**
 
 Run: `cd Core && make test`
 Expected: PASS — 27 (Plan A) + 2 (Task 1) + 4 (Task 2) = **33 tests**.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Core/Sources/WorkspaceContactsCore/ContactSyncExecutor.swift Core/Tests/WorkspaceContactsCoreTests/ContactSyncExecutorTests.swift
@@ -319,7 +319,7 @@ git commit -m "feat(core): ContactStoreWriting seam + ContactSyncExecutor"
 - Consumes: `WorkspaceContactsCore.SyncState`.
 - Produces: `struct SyncStore { init(defaults: UserDefaults = .standard); func load() -> SyncState; func save(_:); func clear(); var consentGiven: Bool { get nonmutating set } }`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```swift
 // app/Tests/SyncStoreTests.swift
@@ -362,12 +362,12 @@ import WorkspaceContactsCore
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails (developer, Xcode)**
+- [x] **Step 2: Run test to verify it fails (developer, Xcode)**
 
 Run the Global-Constraints `xcodebuild … test` invocation.
 Expected: FAIL to compile — `SyncStore` not defined.
 
-- [ ] **Step 3: Implement `SyncStore`**
+- [x] **Step 3: Implement `SyncStore`**
 
 ```swift
 // app/Sources/SyncStore.swift
@@ -404,12 +404,12 @@ struct SyncStore {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass (developer, Xcode)**
+- [x] **Step 4: Run tests to verify they pass (developer, Xcode)**
 
 Run the Global-Constraints `xcodebuild … test` invocation.
 Expected: PASS — `SyncStoreTests` (4) green; whole app suite `** TEST SUCCEEDED **`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/Sources/SyncStore.swift app/Tests/SyncStoreTests.swift
@@ -429,7 +429,7 @@ git commit -m "feat(app): SyncStore (UserDefaults persistence for sync state + c
 - Consumes: `WorkspaceContactsCore.ContactStoreWriting`, `DirectoryPerson`.
 - Produces: `struct CNContactStoreWriter: ContactStoreWriting` with `init(store: CNContactStore = CNContactStore())`, the protocol methods, plus `func requestAccess() async -> Bool` and `func removeAll() throws`. Contacts are tagged into the `"Imeto Directory"` `CNGroup`; company is set to `"Imeto"`.
 
-- [ ] **Step 1: Add the Contacts usage string to `project.yml`**
+- [x] **Step 1: Add the Contacts usage string to `project.yml`**
 
 In `app/project.yml`, under `targets.WorkspaceContacts.info.properties`, add (alongside the existing keys):
 
@@ -439,7 +439,7 @@ In `app/project.yml`, under `targets.WorkspaceContacts.info.properties`, add (al
 
 Then regenerate: `cd app && DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodegen generate`.
 
-- [ ] **Step 2: Write the failing integration test**
+- [x] **Step 2: Write the failing integration test**
 
 ```swift
 // app/Tests/CNContactStoreWriterTests.swift
@@ -504,12 +504,12 @@ private func person(_ id: String, given: String, family: String, phone: String) 
 }
 ```
 
-- [ ] **Step 3: Run test to verify it fails (developer, Xcode)**
+- [x] **Step 3: Run test to verify it fails (developer, Xcode)**
 
 Run the Global-Constraints `xcodebuild … test` invocation.
 Expected: FAIL to compile — `CNContactStoreWriter` not defined.
 
-- [ ] **Step 4: Implement `CNContactStoreWriter`**
+- [x] **Step 4: Implement `CNContactStoreWriter`**
 
 ```swift
 // app/Sources/CNContactStoreWriter.swift
@@ -616,7 +616,7 @@ struct CNContactStoreWriter: ContactStoreWriting {
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass (developer, Xcode)**
+- [x] **Step 5: Run tests to verify they pass (developer, Xcode)**
 
 Pre-grant Contacts on the booted Simulator, then run tests:
 ```bash
@@ -626,7 +626,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun simctl privacy bo
 Then run the Global-Constraints `xcodebuild … test` invocation.
 Expected: PASS — `CNContactStoreWriterTests` green (create/read/update/delete asserted), `** TEST SUCCEEDED **`. (If it records the "not authorized" issue, boot the Simulator + re-run the grant, then retest.)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/Sources/CNContactStoreWriter.swift app/Tests/CNContactStoreWriterTests.swift app/project.yml
@@ -649,7 +649,7 @@ git commit -m "feat(app): CNContactStoreWriter (live Contacts writer, Imeto Dire
   - `enum BackgroundSync { static func run() async }`
   - `AppModel` gains: `@Published private(set) var consentGiven: Bool`, `@Published private(set) var syncStatus: SyncStatus`, `func enableSyncWithConsent() async`, `func syncNow() async`, `func removeAllSyncedContacts() async`, and `func signOut() async` (replacing the sync `signOut()`), where `enum SyncStatus: Equatable { case idle; case syncing; case synced(count: Int, at: Date); case failed(String); case permissionDenied }`.
 
-- [ ] **Step 1: Implement `ContactSyncService` + `BackgroundSync`**
+- [x] **Step 1: Implement `ContactSyncService` + `BackgroundSync`**
 
 ```swift
 // app/Sources/ContactSyncService.swift
@@ -727,7 +727,7 @@ enum BackgroundSync {
 }
 ```
 
-- [ ] **Step 2: Wire sync into `AppModel`**
+- [x] **Step 2: Wire sync into `AppModel`**
 
 Replace the body of `app/Sources/AppModel.swift` with:
 
@@ -848,12 +848,12 @@ final class AppModel: ObservableObject {
 }
 ```
 
-- [ ] **Step 3: Build (developer)**
+- [x] **Step 3: Build (developer)**
 
 Run: `cd app && DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodegen generate` then the Global-Constraints `xcodebuild … test` invocation (compiles the app + reruns tests).
 Expected: `** TEST SUCCEEDED **` (existing tests still pass; new code compiles). Note: `Date()` in `SyncStatus` isn't unit-asserted here; it's exercised in the Task 7 E2E.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/Sources/ContactSyncService.swift app/Sources/AppModel.swift
@@ -873,7 +873,7 @@ git commit -m "feat(app): ContactSyncService + AppModel sync wiring (consent, sy
 - Consumes: `AppModel` (Task 5), `BackgroundSync` (Task 5).
 - Produces: consent screen + sync status + "Sync now" / "Remove all synced contacts" menu; `.backgroundTask(.appRefresh("com.imeto.workspacecontacts.app.refresh"))`; scheduled `BGAppRefreshTaskRequest`.
 
-- [ ] **Step 1: Add the background task identifier to `project.yml`**
+- [x] **Step 1: Add the background task identifier to `project.yml`**
 
 In `app/project.yml`, under `targets.WorkspaceContacts.info.properties`, add:
 
@@ -884,7 +884,7 @@ In `app/project.yml`, under `targets.WorkspaceContacts.info.properties`, add:
 
 Then regenerate: `cd app && DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodegen generate`.
 
-- [ ] **Step 2: Replace `ContentView` with the consent + sync UI**
+- [x] **Step 2: Replace `ContentView` with the consent + sync UI**
 
 ```swift
 // app/Sources/ContentView.swift
@@ -1019,7 +1019,7 @@ struct ContentView: View {
 }
 ```
 
-- [ ] **Step 3: Register + schedule the background refresh in the app entry point**
+- [x] **Step 3: Register + schedule the background refresh in the app entry point**
 
 ```swift
 // app/Sources/WorkspaceContactsApp.swift
@@ -1056,12 +1056,12 @@ struct WorkspaceContactsApp: App {
 }
 ```
 
-- [ ] **Step 4: Build & run (developer)**
+- [x] **Step 4: Build & run (developer)**
 
 Run: `cd app && DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodegen generate`, then build via the Global-Constraints invocation (or open in Xcode).
 Expected: build succeeds; app launches to the sign-in screen; after sign-in a signed-out-of-consent user sees the consent screen.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/Sources/ContentView.swift app/Sources/WorkspaceContactsApp.swift app/project.yml
@@ -1074,17 +1074,17 @@ git commit -m "feat(app): consent/sync UI + BGAppRefreshTask background sync"
 
 **Files:** none (verification only).
 
-- [ ] **Step 1: Run the full headless Core suite**
+- [x] **Step 1: Run the full headless Core suite**
 
 Run: `cd Core && make test`
 Expected: `✔ Test run with 33 tests in 8 suites passed` (27 + 2 + 4).
 
-- [ ] **Step 2: Run the app test suite on the Simulator**
+- [x] **Step 2: Run the app test suite on the Simulator**
 
 Pre-grant contacts, then run the Global-Constraints `xcodebuild … test` invocation.
 Expected: `** TEST SUCCEEDED **` including `SyncStoreTests` and `CNContactStoreWriterTests`.
 
-- [ ] **Step 3: E2E in the Simulator (run from Xcode ⌘R with your personal team)**
+- [x] **Step 3: E2E in the Simulator (run from Xcode ⌘R with your personal team)**
 
 1. Launch, **Sign in with Google** with an `@imeto.com` account.
 2. On the **consent screen**, tap **Enable & sync**; grant the Contacts prompt.
@@ -1098,7 +1098,7 @@ Expected: `** TEST SUCCEEDED **` including `SyncStoreTests` and `CNContactStoreW
 
 Capture screenshots (Contacts app before/after remove) and paste the observed counts into the close-out evidence.
 
-- [ ] **Step 4: Commit any final tweaks + close out**
+- [x] **Step 4: Commit any final tweaks + close out**
 
 ```bash
 git add -A
