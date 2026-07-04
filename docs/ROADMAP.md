@@ -8,13 +8,9 @@ done.
 
 _Actively building. Link the active plan._
 
-- WorkspaceContacts (Imeto directory → iOS caller ID). Design spec:
-  [`plans/2026-07-04-workspace-contacts-design.md`](plans/2026-07-04-workspace-contacts-design.md).
-  Core logic package shipped ✅ (see archive).
-- App Plan A shipped ✅ (signed-in directory list; see archive) — colleague list loads live on the
-  Simulator against the Imeto Workspace directory.
-- App Plan B shipped ✅ (sync to Contacts; see archive) — directory writes to the device address
-  book, kept in sync, with a per-row on-device/cloud badge; verified on Simulator.
+- _(nothing actively building)_ — WorkspaceContacts (Imeto directory → iOS caller ID) has fully
+  shipped: Core package, App Plan A (signed-in directory list), App Plan B (sync to Contacts).
+  All plans and their design specs are in the [shipped log](plans/archive/ROADMAP.md).
 
 ## Next
 

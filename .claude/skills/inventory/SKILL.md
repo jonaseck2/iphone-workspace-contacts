@@ -21,7 +21,9 @@ ls docs/plans/ 2>/dev/null | grep -vE '^(archive|README)'
 
 Classify each:
 - **In progress** — has at least one `- [ ]`.
-- **Design-only** — filename ends `-design.md` (a spec, no tasks by intent — not drift).
+- **Design-only** — filename ends `-design.md` (a spec, no tasks by intent). Not drift *while a
+  plan it drove is still active*. Once every plan that spec drove is archived, the spec is drift
+  too — it should have been archived with its plan. **Action: `git mv` it to `archive/`.**
 - **Drift** — every box is `- [x]`, name doesn't end `-design.md`, still not in `archive/`.
   Per `.claude/rules/plans.md` this is a violation. **Action: run the `close-out` skill.**
 

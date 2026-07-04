@@ -27,6 +27,13 @@ an uncommitted plan on `main` won't exist inside the worktree. Commit first, the
 
 Last `[ ]` flipping to `[x]` while the file is still in `docs/plans/` is drift. Run `close-out`.
 
+## Specs archive with their plan
+
+A design spec (`-design.md`) has no checkboxes, so it isn't retired on its own — it's retired by
+the plan it drove. When you `close-out` an implementation plan, archive its design spec in the
+same commit. If one spec drove several plans, archive it when the **last** of them is closed out.
+A spec still in `docs/plans/` after its implementation has fully shipped is drift.
+
 ## Every plan opens with, in order
 
 1. **Goal** — user-observable outcome, plain language, not mechanism.

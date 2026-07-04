@@ -21,11 +21,18 @@ See `.claude/rules/plans.md` for the rules this enforces.
    `superpowers:verification-before-completion`. If a verification command hasn't been run
    with output captured, the plan is NOT ready to archive.
 
-3. **Archive the file.**
+3. **Archive the file — and its design spec.**
    ```bash
    mkdir -p docs/plans/archive
    git mv docs/plans/<the-plan>.md docs/plans/archive/
    ```
+   If this plan was driven by a design spec (`<topic>-design.md`), archive it in the same step —
+   a spec is retired by its plan, not on its own:
+   ```bash
+   git mv docs/plans/<topic>-design.md docs/plans/archive/
+   ```
+   Exception: if that spec still has other unfinished plans depending on it, leave it in
+   `docs/plans/` until the last of those plans is closed out.
 
 4. **Update the roadmaps.** Remove the plan's line from `docs/ROADMAP.md` (Now/Next), and
    append it to `docs/plans/archive/ROADMAP.md` (newest first) with a one-line outcome.
