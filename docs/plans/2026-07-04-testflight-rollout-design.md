@@ -8,8 +8,8 @@ by name from the native Phone app.
 colleagues' hands." Getting there is a distribution + rollout phase that is mostly *not* code.
 This is the ordered path, with an owner on every step.
 
-**Decisions locked (2026-07-04):** beta channel = **TestFlight**; Imeto has **no Apple Developer
-account / ABM / MDM yet** (or unconfirmed).
+**Decisions locked (2026-07-04):** beta channel = **TestFlight**; Imeto **enrolled in the Apple
+Developer Program** ✅ (gate cleared); Google OAuth consent screen = **Internal** ✅.
 
 **Owner key:** 🧑 = you (Imeto IT manager — you hold the admin access for every 🧑 step: Apple
 enrollment, ABM/MDM, the Google Workspace console) · 🤖 = I can do it here.
@@ -22,13 +22,12 @@ the same signed build; only the delivery differs. See Stage 5 note.
 
 ---
 
-## The gate
+## The gate — CLEARED ✅
 
-Everything Apple-side is blocked on one thing: **🧑 enroll Imeto in the Apple Developer
-Program** ($99/yr) → yields an org **Team ID**. The personal team used for local ⌘R runs
-cannot distribute. Nothing reaches a phone until this exists.
-
-Everything below marked 🤖, plus the Google-side work, can proceed **before** enrollment.
+- [x] 🧑 Enroll Imeto in the Apple Developer Program → org **Team ID** exists. The one thing
+      still needed from you before an archive: **paste the 10-char Team ID** (or
+      `export DEVELOPMENT_TEAM=…` before `xcodegen generate`). It never gets committed — it
+      lands only in the gitignored generated `.xcodeproj`.
 
 ---
 
@@ -37,31 +36,34 @@ Everything below marked 🤖, plus the Google-side work, can proceed **before** 
 Today only I can sign in if the OAuth consent screen is in External/Testing with me as a test
 user. Colleagues would hit "access denied."
 
-- [ ] 🧑 In Google Cloud console → OAuth consent screen, set **User type = Internal** (org-only).
-      This lets any `@imeto.com` account sign in with no per-user allowlist and no Google app
-      verification (Internal apps skip verification even with the sensitive
-      `directory.readonly` scope). 🤖 I'll write the exact click-path.
+- [x] 🧑 OAuth consent screen **User type = Internal** (org-only) — done. Any `@imeto.com`
+      account can sign in with no per-user allowlist and no Google app verification.
 - [x] People API enabled (org) — already done.
 - [x] Admin console → external directory sharing → "organization data" — already done.
 
 **Verify:** a *second* `@imeto.com` account (not the original test user) signs in and sees the
 directory list.
 
-## Stage 2 — App polish real users will see (🤖, no account needed)
+## Stage 2 — App polish real users will see (🤖, done)
 
-- [ ] 🤖 App **icon** (currently SF Symbol placeholder) — real icon set for the home screen.
-- [ ] 🤖 **Launch screen** + confirm **display name**.
-- [ ] 🤖 Draft a **privacy policy** (Contacts data: what's read, where it's written, iCloud
-      caveat, how to remove). 🧑 host it at a stable URL (required by App Store Connect).
-- [ ] 🤖 Pre-fill **App Privacy** nutrition-label answers (Contacts = used, not linked to
-      identity, not for tracking) so the App Store Connect form is copy-paste.
+- [x] 🤖 App **icon** — monochrome Imeto-brand mark (person + call badge), 1024px, wired via
+      `app/Sources/Assets.xcassets/AppIcon.appiconset`. Verified compiled into the built app
+      (`Assets.car` → `AppIcon`, `CFBundleIconName = AppIcon`).
+- [x] 🤖 **Launch screen** (minimal system launch screen, `UILaunchScreen {}`) + **display name**
+      "WorkspaceContacts" — both set in `project.yml`.
+- [x] 🤖 **Privacy manifest** `app/Sources/PrivacyInfo.xcprivacy` (UserDefaults reason CA92.1;
+      no tracking; no collected data) — required for App Store upload; verified bundled.
+- [x] 🤖 **Privacy policy** drafted → [`../rollout/privacy-policy.md`](../rollout/privacy-policy.md).
+      🧑 host it at a stable URL (required by App Store Connect).
+- [x] 🤖 **App Privacy** answers pre-filled → [`../rollout/app-store-privacy.md`](../rollout/app-store-privacy.md).
 
 ## Stage 3 — Signing config for distribution (🤖 prep, 🧑 finish)
 
-- [ ] 🤖 Parameterize the team in `app/project.yml` (read `DEVELOPMENT_TEAM` from env / a
-      gitignored xcconfig) so the org Team ID is **never committed** to the shared repo.
-- [ ] 🧑 Once enrolled: register the app's bundle id `com.imeto.workspacecontacts.app` and let
-      Xcode manage the distribution profile under the org team.
+- [x] 🤖 Parameterized the team in `app/project.yml`: `DEVELOPMENT_TEAM: ${DEVELOPMENT_TEAM}`
+      + `CODE_SIGN_STYLE: Automatic`. The env value is read at `xcodegen generate` time and only
+      reaches the gitignored `.xcodeproj` — **never committed**.
+- [ ] 🧑 Register the app's bundle id `com.imeto.workspacecontacts.app` in the Developer portal
+      and let Xcode manage the distribution profile under the org team.
 
 ## Stage 4 — App Store Connect + first build (needs the account)
 
@@ -75,8 +77,8 @@ directory list.
       fastest path for a first real-device check.
 - [ ] 🧑 For wider rollout, add an **external test group** (email or public link, up to 10k) —
       this needs a one-time light **beta review** and beta test info (the Stage 2 assets cover it).
-- [ ] 🤖 Draft the onboarding note colleagues get: install → sign in with `@imeto.com` → allow
-      Contacts → tap "Enable & sync" → what the iCloud-propagation caveat means for them.
+- [x] 🤖 Onboarding note drafted → [`../rollout/onboarding.md`](../rollout/onboarding.md)
+      (install → sign in → allow Contacts → "Enable & sync" → the iCloud-propagation caveat).
 
 ## Stage 6 — The actual end-to-end proof
 
@@ -95,12 +97,14 @@ directory list.
   handle this; the onboarding note must state it plainly.
 - Never commit the org Team ID to the shared repo (same rule that kept the personal team out).
 
-## What I can start now, in order (all 🤖, all pre-enrollment)
+## Status — all 🤖 pre-enrollment prep is DONE
 
-1. Stage 1 click-path for the OAuth "Internal" switch.
-2. App icon + launch screen + display name (Stage 2).
-3. Privacy policy draft + App Privacy answers (Stage 2).
-4. `project.yml` team parameterization (Stage 3).
-5. Onboarding note (Stage 5).
+Icon, privacy manifest, privacy policy draft, App Privacy answers, signing parameterization, and
+the onboarding note are committed and the app builds clean. What remains is all 🧑 and all needs
+the enrolled account:
 
-Enrollment (the gate) and everything 🧑 is yours.
+1. **Give me the Team ID** (or set `DEVELOPMENT_TEAM`) → I produce a signed archive.
+2. Register the bundle id + create the App Store Connect record (Stage 3–4).
+3. Upload the build; fill App Privacy from [`../rollout/app-store-privacy.md`](../rollout/app-store-privacy.md) + host the privacy policy.
+4. Add internal testers, install on a real iPhone (Stage 5).
+5. **Stage 6** — the one true end-to-end proof: a real incoming call shows a colleague's name.

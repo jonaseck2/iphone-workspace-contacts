@@ -25,7 +25,7 @@ targets:
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
-        # --- FILL THESE from the Imeto Google Cloud iOS OAuth client (see plan prerequisites) ---
+        # Imeto Google Cloud iOS OAuth client (non-secret; consent screen = Internal).
         GIDClientID: 950349872392-8arhv8529ipt6vue4326c82atbte83f0.apps.googleusercontent.com
         CFBundleURLTypes:
           - CFBundleURLSchemes:
@@ -40,6 +40,14 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "6.0"
         TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # Distribution signing. DEVELOPMENT_TEAM is read from the environment at
+        # `xcodegen generate` time, so the org Team ID lands only in the generated
+        # (gitignored) .xcodeproj and never in this committed spec. For a device/archive
+        # build: `export DEVELOPMENT_TEAM=XXXXXXXXXX` before generating. Empty is fine for
+        # Simulator builds (no signing needed).
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ${DEVELOPMENT_TEAM}
     dependencies:
       - package: WorkspaceContactsCore
         product: WorkspaceContactsCore
