@@ -8,9 +8,10 @@ done.
 
 _Actively building. Link the active plan._
 
-- _(nothing actively building)_ — WorkspaceContacts (Imeto directory → iOS caller ID) has fully
-  shipped: Core package, App Plan A (signed-in directory list), App Plan B (sync to Contacts).
-  All plans and their design specs are in the [shipped log](plans/archive/ROADMAP.md).
+- **TestFlight rollout** — get the built app into colleagues' hands and prove caller ID on a
+  real iPhone. Runbook: [`plans/2026-07-04-testflight-rollout-design.md`](plans/2026-07-04-testflight-rollout-design.md).
+  The app itself has fully shipped (Core, App Plan A, App Plan B — see
+  [shipped log](plans/archive/ROADMAP.md)); this is the distribution phase.
 
 ## Next
 
