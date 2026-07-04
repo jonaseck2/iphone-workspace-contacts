@@ -1,7 +1,7 @@
 import Foundation
 
 /// A person from the Google Workspace directory, flattened for our use.
-public struct DirectoryPerson: Equatable {
+public struct DirectoryPerson: Equatable, Sendable {
     public let resourceName: String
     public let etag: String?
     public let displayName: String

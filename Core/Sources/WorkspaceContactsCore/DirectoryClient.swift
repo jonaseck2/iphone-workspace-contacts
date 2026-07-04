@@ -5,7 +5,7 @@ public protocol HTTPFetching: Sendable {
     func get(_ url: URL, bearerToken: String) async throws -> Data
 }
 
-public struct DirectoryFetchResult: Equatable {
+public struct DirectoryFetchResult: Equatable, Sendable {
     public let people: [DirectoryPerson]
     public let nextSyncToken: String?
     public init(people: [DirectoryPerson], nextSyncToken: String?) {
@@ -15,7 +15,7 @@ public struct DirectoryFetchResult: Equatable {
 }
 
 /// Fetches the full directory from People API `listDirectoryPeople`, following pagination.
-public struct DirectoryClient {
+public struct DirectoryClient: Sendable {
     private let fetcher: HTTPFetching
     private let readMask: String
     private static let base = "https://people.googleapis.com/v1/people:listDirectoryPeople"
