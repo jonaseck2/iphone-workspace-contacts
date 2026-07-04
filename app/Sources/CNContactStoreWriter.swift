@@ -79,11 +79,13 @@ struct CNContactStoreWriter: ContactStoreWriting {
         return group
     }
 
-    static let fetchKeys: [CNKeyDescriptor] = [
-        CNContactGivenNameKey, CNContactFamilyNameKey, CNContactPhoneNumbersKey,
-        CNContactEmailAddressesKey, CNContactOrganizationNameKey, CNContactJobTitleKey,
-        CNContactDepartmentNameKey, CNContactIdentifierKey,
-    ].map { $0 as CNKeyDescriptor }
+    static var fetchKeys: [CNKeyDescriptor] {
+        [
+            CNContactGivenNameKey, CNContactFamilyNameKey, CNContactPhoneNumbersKey,
+            CNContactEmailAddressesKey, CNContactOrganizationNameKey, CNContactJobTitleKey,
+            CNContactDepartmentNameKey, CNContactIdentifierKey,
+        ].map { $0 as CNKeyDescriptor }
+    }
 
     private static func apply(_ person: DirectoryPerson, to c: CNMutableContact) {
         c.givenName = person.givenName ?? person.displayName

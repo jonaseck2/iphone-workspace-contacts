@@ -2,7 +2,7 @@ import Foundation
 
 /// Abstract seam over the platform address book so the apply logic stays pure and headless-testable.
 /// The live implementation (CNContactStore) lives in the app target.
-public protocol ContactStoreWriting: Sendable {
+public protocol ContactStoreWriting {
     /// Create a contact for `person`; return its stable contact identifier.
     func create(_ person: DirectoryPerson) throws -> String
     /// Overwrite the mapped fields of the contact with `identifier`.
