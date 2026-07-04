@@ -30,7 +30,9 @@ private func makeSession() -> URLSession {
     return URLSession(configuration: config)
 }
 
-@Suite struct URLSessionHTTPFetcherTests {
+// .serialized: these tests share `StubURLProtocol.handler` (static). swift-testing runs
+// tests in parallel by default, which races on that shared stub; serialize them.
+@Suite(.serialized) struct URLSessionHTTPFetcherTests {
     @Test func sendsBearerTokenAndReturnsBody() async throws {
         StubURLProtocol.handler = { request in
             #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer TOK")
