@@ -1,0 +1,53 @@
+name: WorkspaceContacts
+
+options:
+  bundleIdPrefix: com.imeto.workspacecontacts
+  deploymentTarget:
+    iOS: "16.0"
+
+packages:
+  WorkspaceContactsCore:
+    path: ../Core
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    from: "9.0.0"
+
+targets:
+  WorkspaceContacts:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: Sources
+    info:
+      path: Sources/Info.plist
+      properties:
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        # --- FILL THESE from the Imeto Google Cloud iOS OAuth client (see plan prerequisites) ---
+        GIDClientID: YOUR_IOS_CLIENT_ID.apps.googleusercontent.com
+        CFBundleURLTypes:
+          - CFBundleURLSchemes:
+              - com.googleusercontent.apps.YOUR_IOS_CLIENT_ID
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.imeto.workspacecontacts.app
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "6.0"
+        TARGETED_DEVICE_FAMILY: "1"
+    dependencies:
+      - package: WorkspaceContactsCore
+        product: WorkspaceContactsCore
+      - package: GoogleSignIn
+        product: GoogleSignIn
+
+  WorkspaceContactsTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: Tests
+    dependencies:
+      - target: WorkspaceContacts
