@@ -10,3 +10,5 @@ CLAUDE.local.md
 
 # SwiftPM build artifacts
 .build/
+# SwiftPM / Xcode per-user metadata
+.swiftpm/
