@@ -772,7 +772,7 @@ cd app && xcodegen generate
 ```
 Build & Run on an iOS Simulator (Cmd-R). Expected: launches to the sign-in screen.
 
-- [ ] **Step 5: End-to-end verification (developer, Simulator) — the milestone**
+- [x] **Step 5: End-to-end verification (developer, Simulator) — the milestone**
 
 1. Tap **Sign in with Google**, complete Google auth with an **@imeto.com** account, and grant the directory permission.
    Expected: the app shows a non-empty, alphabetically sorted list of colleagues (name, title, phone where present).

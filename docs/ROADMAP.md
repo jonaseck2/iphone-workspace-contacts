@@ -11,13 +11,8 @@ _Actively building. Link the active plan._
 - WorkspaceContacts (Imeto directory → iOS caller ID). Design spec:
   [`plans/2026-07-04-workspace-contacts-design.md`](plans/2026-07-04-workspace-contacts-design.md).
   Core logic package shipped ✅ (see archive).
-- **App Plan A — signed-in directory list**:
-  [`plans/2026-07-04-workspace-contacts-app-signin.md`](plans/2026-07-04-workspace-contacts-app-signin.md).
-  XcodeGen + GoogleSignIn auth + live fetch + SwiftUI list. **Built + tested on iOS Simulator
-  (Xcode 26.6): Core 27/27 headless, app 2/2 unit tests pass, app launches to the sign-in screen
-  with the real OAuth client id.** Build surfaced + fixed two Swift-6 defects (Core `Sendable`;
-  serialized fetcher tests). **Only the live authenticated sign-in→list step remains** (interactive
-  Google `@imeto.com` login — 26/27 steps done).
+- App Plan A shipped ✅ (signed-in directory list; see archive) — colleague list loads live on the
+  Simulator against the Imeto Workspace directory.
 
 ## Next
 
