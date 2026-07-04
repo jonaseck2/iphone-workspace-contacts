@@ -126,8 +126,10 @@ AuthService.accessToken
 - **Stale identifier (contact deleted by the user):** `update`/`delete` treat "not found" as a soft
   failure; the coordinator drops the ref so the next sync recreates it.
 - **Fetch/network errors:** reuse Plan A's `HTTPFetchError` surfacing (status + body).
-- **`syncToken` expired (410 from People API):** clear the stored token and fall back to a full
-  resync (documented; handled by refetching without a syncToken).
+- **`syncToken` expired:** the People API rejects a stale sync token with a dedicated error
+  (an `EXPIRED_SYNC_TOKEN`-style failure). On that specific error, clear the stored token and fall
+  back to a full resync (refetch without a `syncToken`). The exact status/reason is confirmed
+  during implementation, not assumed here.
 
 ## Testing strategy
 
