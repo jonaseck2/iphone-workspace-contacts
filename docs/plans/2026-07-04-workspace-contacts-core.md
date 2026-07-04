@@ -881,7 +881,7 @@ Expected: PASS (7 tests).
 - [x] **Step 5: Run the whole suite**
 
 Run: `cd Core && swift test`
-Expected: PASS — all tests across Tasks 1–5 green (20 tests total).
+Expected: PASS — all tests across Tasks 1–5 green (21 tests total).
 
 - [x] **Step 6: Commit**
 
