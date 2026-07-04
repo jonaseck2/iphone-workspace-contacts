@@ -21,8 +21,9 @@ contacts" action, and sign-out, remove exactly what the app added.
 - `SyncState { refs, nextSyncToken }` persistence.
 - A live **`CNContactStore`** implementation in the app: maps `DirectoryPerson → CNMutableContact`,
   tags with a dedicated `CNGroup "Imeto Directory"`, applies add/update/delete, and removes all.
-- Orchestration: after the Plan A fetch, run `ContactSync.plan` → execute → persist, incrementally
-  via Google's `syncToken`.
+- Orchestration: after the Plan A **full** directory fetch, run `ContactSync.plan` (which diffs the
+  complete fetched set against the persisted refs to produce create/update/delete) → execute →
+  persist the updated refs.
 - One-time **consent** onboarding (contacts land in the real address book; may reach iCloud),
   Contacts permission handling, sync-status UI, "Sync now", "Remove all synced contacts".
 - **Sign-out removes all** synced contacts.
@@ -36,6 +37,9 @@ contacts" action, and sign-out, remove exactly what the app added.
   caller-ID constraints); we mitigate with the group + map + explicit removal + consent instead.
 - Multi-region phone handling — `defaultCountryCode` is the single constant `"46"` (Sweden),
   matching single-org tenancy.
+- **`syncToken`-based incremental fetch.** `ContactSync.plan` is a full-set diff, so incremental
+  responses (changed-only, with deletion markers) don't fit it without new Core support. Plan B
+  does a full fetch each sync (correct, cheap at this scale); incremental is a later optimization.
 - Any change to the Plan A read path (auth, `DirectoryClient`, list rendering) beyond wiring sync in.
 
 ## Verification
@@ -62,11 +66,11 @@ and the *live store*.
 
 ```
 AuthService.accessToken
-  -> DirectoryClient.fetchAll(token, syncToken)          // Plan A, incremental via syncToken
+  -> DirectoryClient.fetchAll(token, syncToken: nil)     // Plan A, full directory
   -> ContactSync.plan(existing: refs, fetched, "46")     // Core (shipped) -> [ContactOp]
   -> ContactSyncExecutor.apply(ops, using: store, ...)   // Core (new) -> [SyncedContactRef]
        \-> CNContactStoreWriter (app) writes CNContacts + CNGroup
-  -> SyncStore.save(SyncState{ refs, nextSyncToken })    // app persistence (UserDefaults)
+  -> SyncStore.save(SyncState{ refs })                   // app persistence (UserDefaults)
 ```
 
 ### Core additions (no `Contacts` import — `make test`-verified)
@@ -81,8 +85,8 @@ AuthService.accessToken
     `.update` → `store.update` → refreshed ref (new contentHash); `.delete` → `store.delete` → drop ref.
   - Returns the merged `[SyncedContactRef]` plus a list of per-op failures (so one bad contact
     doesn't abort the batch). Pure and deterministic; unit-tested with a fake store.
-- **`SyncState: Codable`** = `{ refs: [SyncedContactRef], nextSyncToken: String? }`; make
-  `SyncedContactRef: Codable`.
+- **`SyncState: Codable`** = `{ refs: [SyncedContactRef] }` (thin versioned wrapper); make
+  `SyncedContactRef: Codable, Sendable`.
 
 ### App additions (built + tested on Simulator)
 
@@ -100,9 +104,11 @@ AuthService.accessToken
     them, then delete the group.
   - `requestAccess()` wraps `CNContactStore.requestAccess(for: .contacts)`.
 - **`SyncStore`** — load/save `SyncState` as JSON in `UserDefaults` (`consentGiven` flag lives here too).
-- **`ContactSyncService`** (`@MainActor`) — orchestrates one sync run given an access token:
-  fetch (with stored `syncToken`) → `ContactSync.plan` → `ContactSyncExecutor.apply` (via the live
-  writer) → persist. Exposes `sync(token:)`, `removeAll()`, and `lastSynced`/`count` status.
+- **`ContactSyncService`** (`@MainActor`) — orchestrates one sync run: `sync(people:)` diffs the
+  given full directory against persisted refs via `ContactSync.plan`, applies through
+  `ContactSyncExecutor` + the live writer, and persists the new refs; `syncFromNetwork(token:client:)`
+  fetches then calls `sync(people:)` (used by the background task); `removeAll()`; and a
+  `ContactSyncSummary` (created/updated/deleted/failed) return.
 - **`AppModel`** — gains `consentGiven`, `syncStatus` (idle/syncing/synced(count, date)/failed);
   after a successful fetch it runs a sync **iff consent is granted**; wires "Sync now",
   "Remove all", and **sign-out → removeAll()**.
@@ -125,11 +131,8 @@ AuthService.accessToken
   record.
 - **Stale identifier (contact deleted by the user):** `update`/`delete` treat "not found" as a soft
   failure; the coordinator drops the ref so the next sync recreates it.
-- **Fetch/network errors:** reuse Plan A's `HTTPFetchError` surfacing (status + body).
-- **`syncToken` expired:** the People API rejects a stale sync token with a dedicated error
-  (an `EXPIRED_SYNC_TOKEN`-style failure). On that specific error, clear the stored token and fall
-  back to a full resync (refetch without a `syncToken`). The exact status/reason is confirmed
-  during implementation, not assumed here.
+- **Fetch/network errors:** reuse Plan A's `HTTPFetchError` surfacing (status + body); a failed
+  fetch aborts the sync run with the error shown, leaving existing synced contacts untouched.
 
 ## Testing strategy
 
