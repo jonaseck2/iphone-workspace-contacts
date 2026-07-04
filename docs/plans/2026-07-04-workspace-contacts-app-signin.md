@@ -3,6 +3,8 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 >
 > **Execution note:** This plan builds an iOS **app target**, which requires **full Xcode** (Simulator + `xcodebuild`). The CLI/agent environment has Command Line Tools only, so the code is *authored* here but **compiled and run by the developer on a Mac with Xcode**. Only the Core-package change (Task 2) is headless-testable via `swift test`. Every app task's verification is a developer-run build/Simulator step — do not mark those tasks done without pasted build/run output.
+>
+> **Status (2026-07-04):** All code authored and committed on branch `feat/app-signin`. **Task 2 verified headlessly** — `cd Core && make test` → `✔ Test run with 27 tests in 6 suites passed`. The **6 remaining unchecked steps are all developer-only** (XcodeGen generate, `xcodebuild`/Cmd-U, and the Simulator end-to-end milestone); the plan stays *active* until those are run on a Mac with Xcode. A full Xcode 26.6 is installed on this machine but `xcode-select` points at Command Line Tools and its licence is unaccepted — running the app build needs `sudo xcode-select -s /Applications/Xcode.app` + `sudo xcodebuild -license accept` first, plus the one-time Google Cloud OAuth prerequisites below.
 
 ## Goal
 
@@ -65,7 +67,7 @@ Until these are filled, Tasks 1–4 still build; only Task 5's live sign-in requ
 - Consumes: the local `WorkspaceContactsCore` package at `../Core`.
 - Produces: a generatable, buildable iOS app target `WorkspaceContacts` that launches to a placeholder screen; SwiftPM resolves both the local Core package and the remote GoogleSignIn package.
 
-- [ ] **Step 1: Create `app/project.yml`**
+- [x] **Step 1: Create `app/project.yml`**
 
 ```yaml
 name: WorkspaceContacts
@@ -123,7 +125,7 @@ targets:
       - target: WorkspaceContacts
 ```
 
-- [ ] **Step 2: Create the app entry point**
+- [x] **Step 2: Create the app entry point**
 
 ```swift
 // app/Sources/WorkspaceContactsApp.swift
@@ -139,7 +141,7 @@ struct WorkspaceContactsApp: App {
 }
 ```
 
-- [ ] **Step 3: Create a placeholder `ContentView`**
+- [x] **Step 3: Create a placeholder `ContentView`**
 
 ```swift
 // app/Sources/ContentView.swift
@@ -158,7 +160,7 @@ struct ContentView: View {
 }
 ```
 
-- [ ] **Step 4: Create `app/.gitignore`**
+- [x] **Step 4: Create `app/.gitignore`**
 
 ```gitignore
 # XcodeGen output — regenerate with `xcodegen generate`
@@ -179,7 +181,7 @@ open WorkspaceContacts.xcodeproj
 Then in Xcode: select an iOS Simulator, Build & Run (Cmd-R).
 Expected: SwiftPM resolves `WorkspaceContactsCore` (local) and `GoogleSignIn` (remote); the app launches showing the "WorkspaceContacts" placeholder screen. (Valid `GIDClientID` not required for this build.)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/project.yml app/Sources app/.gitignore
@@ -198,7 +200,7 @@ git commit -m "feat(app): XcodeGen project + buildable SwiftUI shell"
 - Consumes: nothing.
 - Produces: `public enum EmailDomain { public static func matches(email: String, domain: String) -> Bool }` — case-insensitive; true only when `email` has exactly one `@` and the part after it equals `domain` (case-insensitively), ignoring surrounding whitespace. Used by the app's `AuthService` to enforce `imeto.com`.
 
-- [ ] **Step 1: Write the failing test (swift-testing)**
+- [x] **Step 1: Write the failing test (swift-testing)**
 
 ```swift
 // Core/Tests/WorkspaceContactsCoreTests/EmailDomainTests.swift
@@ -238,12 +240,12 @@ import Testing
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd Core && swift test --filter EmailDomainTests`
 Expected: FAIL to compile — `EmailDomain` not defined.
 
-- [ ] **Step 3: Implement `EmailDomain`**
+- [x] **Step 3: Implement `EmailDomain`**
 
 ```swift
 // Core/Sources/WorkspaceContactsCore/EmailDomain.swift
@@ -263,17 +265,17 @@ public enum EmailDomain {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd Core && swift test --filter EmailDomainTests`
 Expected: PASS (6 tests).
 
-- [ ] **Step 5: Run the full Core suite (no regressions)**
+- [x] **Step 5: Run the full Core suite (no regressions)**
 
 Run: `cd Core && swift test`
 Expected: PASS — previous 21 + 6 new = **27 tests**.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Core/Sources Core/Tests
@@ -298,7 +300,7 @@ git commit -m "feat(core): add EmailDomain helper for single-org enforcement"
   - `enum AuthState: Equatable { case signedOut; case signedIn; case error(String) }`.
   - The allowed domain constant `imeto.com` and the scope live here.
 
-- [ ] **Step 1: Create the presenting-VC helper**
+- [x] **Step 1: Create the presenting-VC helper**
 
 ```swift
 // app/Sources/RootViewController.swift
@@ -321,7 +323,7 @@ enum RootViewController {
 }
 ```
 
-- [ ] **Step 2: Implement `AuthService`**
+- [x] **Step 2: Implement `AuthService`**
 
 ```swift
 // app/Sources/AuthService.swift
@@ -420,7 +422,7 @@ final class AuthService: ObservableObject {
 Run: in Xcode, Build (Cmd-B) after `cd app && xcodegen generate`.
 Expected: compiles cleanly; `AuthService` and `RootViewController` are part of the target. (Behavior is exercised in Task 5.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/Sources/RootViewController.swift app/Sources/AuthService.swift
@@ -439,7 +441,7 @@ git commit -m "feat(app): AuthService wrapping GoogleSignIn with imeto.com enfor
 - Consumes: `WorkspaceContactsCore.HTTPFetching`.
 - Produces: `struct URLSessionHTTPFetcher: HTTPFetching` — `init(session: URLSession = .shared)`; `func get(_ url: URL, bearerToken: String) async throws -> Data` sends `Authorization: Bearer <token>`, and throws `HTTPFetchError.status(Int)` for non-2xx responses. This is the live implementation of the seam the Core `DirectoryClient` consumes.
 
-- [ ] **Step 1: Write the failing test (swift-testing, URLProtocol stub)**
+- [x] **Step 1: Write the failing test (swift-testing, URLProtocol stub)**
 
 ```swift
 // app/Tests/URLSessionHTTPFetcherTests.swift
@@ -505,7 +507,7 @@ private func makeSession() -> URLSession {
 
 Expected: FAIL to compile — `URLSessionHTTPFetcher` / `HTTPFetchError` not defined.
 
-- [ ] **Step 3: Implement the fetcher**
+- [x] **Step 3: Implement the fetcher**
 
 ```swift
 // app/Sources/URLSessionHTTPFetcher.swift
@@ -540,7 +542,7 @@ struct URLSessionHTTPFetcher: HTTPFetching {
 
 Expected: PASS (2 tests) in the `WorkspaceContactsTests` target.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/Sources/URLSessionHTTPFetcher.swift app/Tests/URLSessionHTTPFetcherTests.swift
@@ -568,7 +570,7 @@ git commit -m "feat(app): URLSessionHTTPFetcher implementing Core HTTPFetching"
   - `AppModel` mirrors the nested `AuthService.state` into its own `@Published authState` after every auth call, so the SwiftUI view (which observes `AppModel`, not the nested `AuthService`) re-renders on sign-in/error. `ContentView` reads `model.authState`, never `model.auth.state`.
   - `ContentView` observing `AppModel`: shows a sign-in button when signed out, the colleague list when loaded, and error/loading states.
 
-- [ ] **Step 1: Implement `AppModel`**
+- [x] **Step 1: Implement `AppModel`**
 
 ```swift
 // app/Sources/AppModel.swift
@@ -633,7 +635,7 @@ final class AppModel: ObservableObject {
 }
 ```
 
-- [ ] **Step 2: Replace `ContentView` with the real UI**
+- [x] **Step 2: Replace `ContentView` with the real UI**
 
 ```swift
 // app/Sources/ContentView.swift
@@ -705,7 +707,7 @@ struct ContentView: View {
 }
 ```
 
-- [ ] **Step 3: Wire the OAuth callback in the app entry point**
+- [x] **Step 3: Wire the OAuth callback in the app entry point**
 
 ```swift
 // app/Sources/WorkspaceContactsApp.swift
@@ -742,7 +744,7 @@ Build & Run on an iOS Simulator (Cmd-R). Expected: launches to the sign-in scree
 
 Paste the observed result (row count and the two outcomes) into the commit message / close-out evidence.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/Sources/AppModel.swift app/Sources/ContentView.swift app/Sources/WorkspaceContactsApp.swift
