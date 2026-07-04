@@ -17,7 +17,7 @@ struct WorkspaceContactsApp: App {
             await BackgroundSync.run()
             await Self.scheduleRefresh()
         }
-        .onChange(of: scenePhase) { _, phase in
+        .onChange(of: scenePhase) { phase in
             if phase == .background { Task { await Self.scheduleRefresh() } }
         }
     }
