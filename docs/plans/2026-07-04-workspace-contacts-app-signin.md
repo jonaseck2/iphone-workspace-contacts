@@ -62,8 +62,15 @@ The app cannot authenticate until these exist — set them up in the Imeto Googl
    gcloud services list --enabled --project="$PROJECT_ID" --filter="config.name:people.googleapis.com"
    ```
    (GUI equivalent: APIs & Services → Library → "People API" → Enable.) Directory sharing is a
-   Workspace **Admin console** setting (Directory → Directory settings → Contact sharing), not a
-   `gcloud` toggle.
+   Workspace **Admin console** setting (Directory → Directory settings → Sharing settings), not a
+   `gcloud` toggle. Two sub-settings matter, and both must be right:
+   - **Contact sharing** → **ON**.
+   - **External directory sharing** → must be **"Organization data and basic profile fields"**
+     (the option that shares org profile data for *all* users), **not** "Basic profile fields for
+     the authenticated user" (that one shares only the signed-in user and explicitly does **not**
+     share other users' profiles → `listDirectoryPeople` returns
+     `HTTP 403 … "The G Suite domain admin has disabled external directory sharing"`).
+     Takes a few minutes to propagate (Google says up to 24h). Ref: support.google.com/a/answer/6343701.
 
 Until these are filled, Tasks 1–4 still build; only Task 5's live sign-in requires them.
 
