@@ -2,17 +2,36 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build `WorkspaceContactsCore`, a headless Swift package containing the People-API decoding, phone-number E.164 normalization, directory paging logic, and the contact-diff engine — the pure logic the iOS app rests on, fully verifiable with `swift test`.
+## Goal
 
-**Architecture:** A standalone SwiftPM library target (`WorkspaceContactsCore`) with an XCTest test target. It has **no dependency on Contacts, UIKit, AppAuth, or the network** — the diff engine is a pure function over value types, the directory client takes an injectable HTTP fetcher, and everything decodes/transforms plain `Foundation` types. This keeps it runnable on macOS via `swift test` with zero Xcode/device.
+A colleague's directory data can be turned into ready-to-write contact operations entirely by tested, headless logic — People-API JSON in, a reconciled create/update/delete plan out — so the iOS app that follows only has to execute those operations.
 
-**Tech Stack:** Swift 5.9+, SwiftPM, XCTest, Foundation only.
+## Scope
+
+**In:** a standalone SwiftPM package `WorkspaceContactsCore` with four pieces of pure logic — People-API decoding, E.164 phone normalization, directory paging/syncToken handling, and the contact-diff engine — plus its package scaffold, all verified by `swift test`.
+
+**Out (deferred to the app-integration plan):** `AuthService` (AppAuth/PKCE/Keychain), the live `URLSession` fetcher, the `CNContactStore` executor that applies the ops, local persistence of synced refs, the SwiftUI shell, `BGAppRefreshTask`, and the Xcode app target. This package must not import `Contacts`, `UIKit`, `SwiftUI`, `AppAuth`, or any networking framework.
+
+## Verification
+
+Runnable check for the whole plan:
+
+```bash
+cd Core && swift test
+```
+
+Expected: build succeeds and **all tests pass** — Task 1 scaffold (1), decoding (2), phone normalization (7), directory client (3), contact diff (7) = **20 tests**, reported by swift-testing as "Test run with 20 tests passed". This green `swift test` is the verification anchor for the app-integration plan that follows.
+
+**Architecture:** A standalone SwiftPM library target (`WorkspaceContactsCore`) with a swift-testing test target. The diff engine is a pure function over value types, the directory client takes an injectable HTTP fetcher, and everything decodes/transforms plain `Foundation` types. This keeps it runnable on macOS via `swift test` with zero Xcode/device.
+
+**Tech Stack:** Swift 5.9+ (toolchain 6.1), SwiftPM, **swift-testing** (`import Testing`), Foundation only.
 
 ## Global Constraints
 
-- **Foundation-only.** No import of `Contacts`, `UIKit`, `SwiftUI`, `AppAuth`, or any networking framework in this package — it must compile and test on macOS headlessly. (Verified by `swift test` succeeding on a Mac with no simulator.)
+- **Foundation-only.** No import of `Contacts`, `UIKit`, `SwiftUI`, `AppAuth`, or any networking framework in this package — it must compile and test on macOS headlessly. (Verified by `swift test` succeeding on a Mac with Command Line Tools only.)
+- **Test framework: swift-testing, NOT XCTest.** Use `import Testing`, `@Suite`, `@Test`, and `#expect(...)`. The CLI environment has Command Line Tools only, where **XCTest is unavailable** (`import XCTest` → "no such module"); swift-testing ships with the toolchain and runs headlessly. Do not `import XCTest` anywhere.
 - **Package location:** `Core/` at repo root (`Core/Package.swift`, `Core/Sources/WorkspaceContactsCore/`, `Core/Tests/WorkspaceContactsCoreTests/`). Run all commands from `Core/`.
-- **Swift tools version:** `5.9`. Platforms: `.iOS(.v16)`, `.macOS(.v13)`.
+- **Swift tools version:** `5.9`. Platforms: `.iOS(.v16)`, `.macOS(.v13)`. The macOS floor is required — without it swift-testing macros fail with "'Actor' is only available in macOS 10.15 or newer".
 - **Tenancy:** single-org; no multi-tenant logic belongs here (domain checks live in the app's AuthService, not Core).
 - **Sync filter:** only people with ≥1 *normalizable* phone number are eligible for sync (enforced in the diff engine).
 - **Default region:** phone normalization takes an explicit `defaultCountryCode` parameter (no hardcoded region inside the normalizer). Tests use `"46"` (Sweden).
@@ -28,7 +47,7 @@
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: a buildable `WorkspaceContactsCore` library target and a runnable test target.
+- Produces: a buildable `WorkspaceContactsCore` library target and a runnable swift-testing test target.
 
 - [ ] **Step 1: Create `Package.swift`**
 
@@ -64,16 +83,16 @@ public enum WorkspaceContactsCore {
 }
 ```
 
-- [ ] **Step 3: Write a scaffold test**
+- [ ] **Step 3: Write a scaffold test (swift-testing)**
 
 ```swift
 // Core/Tests/WorkspaceContactsCoreTests/ScaffoldTests.swift
-import XCTest
+import Testing
 @testable import WorkspaceContactsCore
 
-final class ScaffoldTests: XCTestCase {
-    func test_packageVersionIsSet() {
-        XCTAssertEqual(WorkspaceContactsCore.version, "0.1.0")
+@Suite struct ScaffoldTests {
+    @Test func packageVersionIsSet() {
+        #expect(WorkspaceContactsCore.version == "0.1.0")
     }
 }
 ```
@@ -81,7 +100,7 @@ final class ScaffoldTests: XCTestCase {
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `cd Core && swift test`
-Expected: build succeeds, `test_packageVersionIsSet` PASSES (1 test).
+Expected: build succeeds, `packageVersionIsSet` PASSES (swift-testing reports "Test run with 1 test passed").
 
 - [ ] **Step 5: Commit**
 
@@ -110,14 +129,15 @@ git commit -m "feat(core): scaffold WorkspaceContactsCore swift package"
     `people: [DirectoryPerson]`, `nextPageToken: String?`, `nextSyncToken: String?`.
   - `public static func ListDirectoryPeopleResponse.decode(_ data: Data) throws -> ListDirectoryPeopleResponse`.
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Write the failing test (swift-testing)**
 
 ```swift
 // Core/Tests/WorkspaceContactsCoreTests/PeopleAPIDecodingTests.swift
-import XCTest
+import Testing
+import Foundation
 @testable import WorkspaceContactsCore
 
-final class PeopleAPIDecodingTests: XCTestCase {
+@Suite struct PeopleAPIDecodingTests {
     private let json = """
     {
       "people": [
@@ -152,37 +172,37 @@ final class PeopleAPIDecodingTests: XCTestCase {
     }
     """.data(using: .utf8)!
 
-    func test_decodesPeopleAndTokens() throws {
+    @Test func decodesPeopleAndTokens() throws {
         let response = try ListDirectoryPeopleResponse.decode(json)
 
-        XCTAssertEqual(response.nextPageToken, "page-2")
-        XCTAssertEqual(response.nextSyncToken, "sync-abc")
-        XCTAssertEqual(response.people.count, 2)
+        #expect(response.nextPageToken == "page-2")
+        #expect(response.nextSyncToken == "sync-abc")
+        #expect(response.people.count == 2)
 
         let jane = response.people[0]
-        XCTAssertEqual(jane.resourceName, "people/c1")
-        XCTAssertEqual(jane.etag, "etag-1")
-        XCTAssertEqual(jane.displayName, "Jane Doe")
-        XCTAssertEqual(jane.givenName, "Jane")
-        XCTAssertEqual(jane.familyName, "Doe")
-        XCTAssertEqual(jane.emails, ["jane@imeto.com", "j.doe@imeto.com"])
-        XCTAssertEqual(jane.phoneNumbers, ["+46701234567"])
-        XCTAssertEqual(jane.organizationTitle, "Consultant")
-        XCTAssertEqual(jane.department, "Engineering")
-        XCTAssertEqual(jane.photoURL, "https://example.com/jane.jpg")
+        #expect(jane.resourceName == "people/c1")
+        #expect(jane.etag == "etag-1")
+        #expect(jane.displayName == "Jane Doe")
+        #expect(jane.givenName == "Jane")
+        #expect(jane.familyName == "Doe")
+        #expect(jane.emails == ["jane@imeto.com", "j.doe@imeto.com"])
+        #expect(jane.phoneNumbers == ["+46701234567"])
+        #expect(jane.organizationTitle == "Consultant")
+        #expect(jane.department == "Engineering")
+        #expect(jane.photoURL == "https://example.com/jane.jpg")
 
         let second = response.people[1]
-        XCTAssertEqual(second.displayName, "No Phone Person")
-        XCTAssertTrue(second.phoneNumbers.isEmpty)
-        XCTAssertNil(second.organizationTitle)
+        #expect(second.displayName == "No Phone Person")
+        #expect(second.phoneNumbers.isEmpty)
+        #expect(second.organizationTitle == nil)
     }
 
-    func test_missingDisplayNameFallsBackToEmpty() throws {
+    @Test func missingDisplayNameFallsBackToEmpty() throws {
         let data = """
         {"people": [{"resourceName": "people/c3"}]}
         """.data(using: .utf8)!
         let response = try ListDirectoryPeopleResponse.decode(data)
-        XCTAssertEqual(response.people[0].displayName, "")
+        #expect(response.people[0].displayName == "")
     }
 }
 ```
@@ -351,50 +371,50 @@ git commit -m "feat(core): decode People API listDirectoryPeople into DirectoryP
   Returns a `+`-prefixed digit string of length 8–15, or `nil` if the input can't be
   normalized. `defaultCountryCode` is digits only (e.g. `"46"`).
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Write the failing test (swift-testing)**
 
 ```swift
 // Core/Tests/WorkspaceContactsCoreTests/PhoneNormalizerTests.swift
-import XCTest
+import Testing
 @testable import WorkspaceContactsCore
 
-final class PhoneNormalizerTests: XCTestCase {
+@Suite struct PhoneNormalizerTests {
     private func norm(_ s: String) -> String? {
         PhoneNormalizer.e164(s, defaultCountryCode: "46")
     }
 
-    func test_alreadyE164_passesThrough() {
-        XCTAssertEqual(norm("+46701234567"), "+46701234567")
+    @Test func alreadyE164_passesThrough() {
+        #expect(norm("+46701234567") == "+46701234567")
     }
 
-    func test_stripsFormatting() {
-        XCTAssertEqual(norm("+46 70-123 45 67"), "+46701234567")
-        XCTAssertEqual(norm("(070) 123.45.67"), "+46701234567")
+    @Test func stripsFormatting() {
+        #expect(norm("+46 70-123 45 67") == "+46701234567")
+        #expect(norm("(070) 123.45.67") == "+46701234567")
     }
 
-    func test_nationalWithLeadingZero_usesDefaultCountryCode() {
-        XCTAssertEqual(norm("0701234567"), "+46701234567")
+    @Test func nationalWithLeadingZero_usesDefaultCountryCode() {
+        #expect(norm("0701234567") == "+46701234567")
     }
 
-    func test_doubleZeroInternationalPrefix_becomesPlus() {
-        XCTAssertEqual(norm("004670 123 45 67"), "+46701234567")
+    @Test func doubleZeroInternationalPrefix_becomesPlus() {
+        #expect(norm("004670 123 45 67") == "+46701234567")
     }
 
-    func test_bareNationalDigits_getDefaultCountryCode() {
+    @Test func bareNationalDigits_getDefaultCountryCode() {
         // No +, no leading 0, no 00 -> treat as national subscriber number.
-        XCTAssertEqual(norm("701234567"), "+46701234567")
+        #expect(norm("701234567") == "+46701234567")
     }
 
-    func test_emptyOrJunk_returnsNil() {
-        XCTAssertNil(norm(""))
-        XCTAssertNil(norm("   "))
-        XCTAssertNil(norm("abc"))
-        XCTAssertNil(norm("+"))
+    @Test func emptyOrJunk_returnsNil() {
+        #expect(norm("") == nil)
+        #expect(norm("   ") == nil)
+        #expect(norm("abc") == nil)
+        #expect(norm("+") == nil)
     }
 
-    func test_tooShortOrTooLong_returnsNil() {
-        XCTAssertNil(norm("+123"))                 // 3 digits, too short
-        XCTAssertNil(norm("+1234567890123456"))    // 16 digits, too long
+    @Test func tooShortOrTooLong_returnsNil() {
+        #expect(norm("+123") == nil)                 // 3 digits, too short
+        #expect(norm("+1234567890123456") == nil)    // 16 digits, too long
     }
 }
 ```
@@ -475,14 +495,15 @@ git commit -m "feat(core): add heuristic E.164 phone normalizer"
   - The client follows `nextPageToken` until absent, accumulating people, and returns the
     final page's `nextSyncToken`.
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Write the failing test (swift-testing)**
 
 ```swift
 // Core/Tests/WorkspaceContactsCoreTests/DirectoryClientTests.swift
-import XCTest
+import Testing
+import Foundation
 @testable import WorkspaceContactsCore
 
-private final class StubFetcher: HTTPFetching {
+private final class StubFetcher: HTTPFetching, @unchecked Sendable {
     var responses: [Data]
     private(set) var requestedURLs: [URL] = []
     private(set) var tokens: [String] = []
@@ -496,7 +517,7 @@ private final class StubFetcher: HTTPFetching {
     }
 }
 
-final class DirectoryClientTests: XCTestCase {
+@Suite struct DirectoryClientTests {
 
     private func page(people: String, nextPage: String?, nextSync: String?) -> Data {
         var obj = "{\"people\":[\(people)]"
@@ -509,7 +530,7 @@ final class DirectoryClientTests: XCTestCase {
     private let p1 = "{\"resourceName\":\"people/c1\",\"names\":[{\"displayName\":\"A\"}]}"
     private let p2 = "{\"resourceName\":\"people/c2\",\"names\":[{\"displayName\":\"B\"}]}"
 
-    func test_followsPaging_andReturnsFinalSyncToken() async throws {
+    @Test func followsPaging_andReturnsFinalSyncToken() async throws {
         let fetcher = StubFetcher(responses: [
             page(people: p1, nextPage: "PAGE2", nextSync: nil),
             page(people: p2, nextPage: nil, nextSync: "SYNC-END"),
@@ -518,13 +539,13 @@ final class DirectoryClientTests: XCTestCase {
 
         let result = try await client.fetchAll(token: "TOKEN123", syncToken: nil)
 
-        XCTAssertEqual(result.people.map(\.resourceName), ["people/c1", "people/c2"])
-        XCTAssertEqual(result.nextSyncToken, "SYNC-END")
-        XCTAssertEqual(fetcher.requestedURLs.count, 2)
-        XCTAssertEqual(fetcher.tokens, ["TOKEN123", "TOKEN123"])
+        #expect(result.people.map(\.resourceName) == ["people/c1", "people/c2"])
+        #expect(result.nextSyncToken == "SYNC-END")
+        #expect(fetcher.requestedURLs.count == 2)
+        #expect(fetcher.tokens == ["TOKEN123", "TOKEN123"])
     }
 
-    func test_singlePage_returnsSyncToken() async throws {
+    @Test func singlePage_returnsSyncToken() async throws {
         let fetcher = StubFetcher(responses: [
             page(people: p1, nextPage: nil, nextSync: "SYNC-1"),
         ])
@@ -532,14 +553,14 @@ final class DirectoryClientTests: XCTestCase {
 
         let result = try await client.fetchAll(token: "T", syncToken: "PREV")
 
-        XCTAssertEqual(result.people.count, 1)
-        XCTAssertEqual(result.nextSyncToken, "SYNC-1")
-        XCTAssertEqual(fetcher.requestedURLs.count, 1)
+        #expect(result.people.count == 1)
+        #expect(result.nextSyncToken == "SYNC-1")
+        #expect(fetcher.requestedURLs.count == 1)
         // The prior syncToken must be sent as a query item on the first request.
-        XCTAssertTrue(fetcher.requestedURLs[0].absoluteString.contains("syncToken=PREV"))
+        #expect(fetcher.requestedURLs[0].absoluteString.contains("syncToken=PREV"))
     }
 
-    func test_readMaskAndSourceAreOnRequest() async throws {
+    @Test func readMaskAndSourceAreOnRequest() async throws {
         let fetcher = StubFetcher(responses: [
             page(people: p1, nextPage: nil, nextSync: "S"),
         ])
@@ -547,8 +568,8 @@ final class DirectoryClientTests: XCTestCase {
         _ = try await client.fetchAll(token: "T", syncToken: nil)
 
         let url = fetcher.requestedURLs[0].absoluteString
-        XCTAssertTrue(url.contains("readMask=names"))
-        XCTAssertTrue(url.contains("sources=DIRECTORY_SOURCE_TYPE_DOMAIN_PROFILE"))
+        #expect(url.contains("readMask=names"))
+        #expect(url.contains("sources=DIRECTORY_SOURCE_TYPE_DOMAIN_PROFILE"))
     }
 }
 ```
@@ -565,7 +586,7 @@ Expected: FAIL to compile — `HTTPFetching` / `DirectoryClient` not defined.
 import Foundation
 
 /// Abstraction over the network so the paging logic is testable without URLSession.
-public protocol HTTPFetching {
+public protocol HTTPFetching: Sendable {
     func get(_ url: URL, bearerToken: String) async throws -> Data
 }
 
@@ -661,14 +682,14 @@ git commit -m "feat(core): add DirectoryClient with paging and syncToken handlin
     is absent from the (phone-eligible) fetched set. Output order: creates, then updates,
     then deletes; within each group, input order is preserved.
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Write the failing test (swift-testing)**
 
 ```swift
 // Core/Tests/WorkspaceContactsCoreTests/ContactSyncTests.swift
-import XCTest
+import Testing
 @testable import WorkspaceContactsCore
 
-final class ContactSyncTests: XCTestCase {
+@Suite struct ContactSyncTests {
     private let cc = "46"
 
     private func person(_ id: String, name: String, phone: String?) -> DirectoryPerson {
@@ -679,22 +700,22 @@ final class ContactSyncTests: XCTestCase {
         )
     }
 
-    func test_createsNewPeopleWithPhone() {
+    @Test func createsNewPeopleWithPhone() {
         let fetched = [person("people/c1", name: "Jane", phone: "0701234567")]
         let ops = ContactSync.plan(existing: [], fetched: fetched, defaultCountryCode: cc)
-        XCTAssertEqual(ops, [.create(fetched[0])])
+        #expect(ops == [.create(fetched[0])])
     }
 
-    func test_skipsPeopleWithoutNormalizablePhone() {
+    @Test func skipsPeopleWithoutNormalizablePhone() {
         let fetched = [
             person("people/c1", name: "NoPhone", phone: nil),
             person("people/c2", name: "JunkPhone", phone: "abc"),
         ]
         let ops = ContactSync.plan(existing: [], fetched: fetched, defaultCountryCode: cc)
-        XCTAssertEqual(ops, [])
+        #expect(ops == [])
     }
 
-    func test_noOpWhenHashUnchanged() {
+    @Test func noOpWhenHashUnchanged() {
         let jane = person("people/c1", name: "Jane", phone: "0701234567")
         let existing = [SyncedContactRef(
             resourceName: "people/c1",
@@ -702,10 +723,10 @@ final class ContactSyncTests: XCTestCase {
             contentHash: jane.contentHash(defaultCountryCode: cc)
         )]
         let ops = ContactSync.plan(existing: existing, fetched: [jane], defaultCountryCode: cc)
-        XCTAssertEqual(ops, [])
+        #expect(ops == [])
     }
 
-    func test_updatesWhenContentChanged() {
+    @Test func updatesWhenContentChanged() {
         let old = person("people/c1", name: "Jane", phone: "0701234567")
         let new = person("people/c1", name: "Jane Doe", phone: "0701234567")
         let existing = [SyncedContactRef(
@@ -714,20 +735,20 @@ final class ContactSyncTests: XCTestCase {
             contentHash: old.contentHash(defaultCountryCode: cc)
         )]
         let ops = ContactSync.plan(existing: existing, fetched: [new], defaultCountryCode: cc)
-        XCTAssertEqual(ops, [.update(contactIdentifier: "ABC", new)])
+        #expect(ops == [.update(contactIdentifier: "ABC", new)])
     }
 
-    func test_deletesWhenPersonGone() {
+    @Test func deletesWhenPersonGone() {
         let existing = [SyncedContactRef(
             resourceName: "people/c1",
             contactIdentifier: "ABC",
             contentHash: "whatever"
         )]
         let ops = ContactSync.plan(existing: existing, fetched: [], defaultCountryCode: cc)
-        XCTAssertEqual(ops, [.delete(contactIdentifier: "ABC")])
+        #expect(ops == [.delete(contactIdentifier: "ABC")])
     }
 
-    func test_personLosingPhone_isDeleted() {
+    @Test func personLosingPhone_isDeleted() {
         let existing = [SyncedContactRef(
             resourceName: "people/c1",
             contactIdentifier: "ABC",
@@ -735,10 +756,10 @@ final class ContactSyncTests: XCTestCase {
         )]
         let nowNoPhone = [person("people/c1", name: "Jane", phone: nil)]
         let ops = ContactSync.plan(existing: existing, fetched: nowNoPhone, defaultCountryCode: cc)
-        XCTAssertEqual(ops, [.delete(contactIdentifier: "ABC")])
+        #expect(ops == [.delete(contactIdentifier: "ABC")])
     }
 
-    func test_ordering_createsThenUpdatesThenDeletes() {
+    @Test func ordering_createsThenUpdatesThenDeletes() {
         let create = person("people/new", name: "New", phone: "0700000001")
         let updOld = person("people/upd", name: "Old", phone: "0700000002")
         let updNew = person("people/upd", name: "Updated", phone: "0700000002")
@@ -749,7 +770,7 @@ final class ContactSyncTests: XCTestCase {
                              contentHash: "x"),
         ]
         let ops = ContactSync.plan(existing: existing, fetched: [create, updNew], defaultCountryCode: cc)
-        XCTAssertEqual(ops, [
+        #expect(ops == [
             .create(create),
             .update(contactIdentifier: "U", updNew),
             .delete(contactIdentifier: "G"),
@@ -871,19 +892,6 @@ git commit -m "feat(core): add ContactSync diff engine (create/update/delete)"
 
 ---
 
-## Verification (whole plan)
-
-Run from repo root:
-
-```bash
-cd Core && swift test
-```
-
-**Expected:** build succeeds with no Contacts/UIKit/network imports, and all tests pass
-(ScaffoldTests 1, PeopleAPIDecodingTests 2, PhoneNormalizerTests 7, DirectoryClientTests 3,
-ContactSyncTests 7 = **20 tests**). This green `swift test` is the verification anchor for
-the app integration plan that follows.
-
 ## What this plan intentionally defers (next plan)
 
 - `AuthService` (AppAuth + PKCE, `hd=imeto.com`, non-imeto rejection, Keychain).
@@ -893,4 +901,3 @@ the app integration plan that follows.
 - Local persistence of `[SyncedContactRef]` + `nextSyncToken`.
 - SwiftUI shell, `BGAppRefreshTask`, onboarding consent + "Remove all synced contacts".
 - The Xcode app target wiring the package in.
-```
