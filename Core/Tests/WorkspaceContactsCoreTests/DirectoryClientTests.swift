@@ -70,4 +70,20 @@ private final class StubFetcher: HTTPFetching, @unchecked Sendable {
         #expect(url.contains("readMask=names"))
         #expect(url.contains("sources=DIRECTORY_SOURCE_TYPE_DOMAIN_PROFILE"))
     }
+
+    @Test func multiPage_syncTokenSentOnlyOnFirstRequest() async throws {
+        let fetcher = StubFetcher(responses: [
+            page(people: p1, nextPage: "PAGE2", nextSync: nil),
+            page(people: p2, nextPage: nil, nextSync: "SYNC-END"),
+        ])
+        let client = DirectoryClient(fetcher: fetcher)
+
+        let result = try await client.fetchAll(token: "T", syncToken: "PREV")
+
+        #expect(fetcher.requestedURLs.count == 2)
+        #expect(fetcher.requestedURLs[0].absoluteString.contains("syncToken=PREV"))
+        #expect(!fetcher.requestedURLs[1].absoluteString.contains("syncToken"))
+        #expect(result.people.map(\.resourceName) == ["people/c1", "people/c2"])
+        #expect(result.nextSyncToken == "SYNC-END")
+    }
 }

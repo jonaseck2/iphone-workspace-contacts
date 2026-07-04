@@ -1,0 +1,35 @@
+{
+  "": {
+    "swift-dependencies": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/master.swiftdeps"
+  },
+  "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/Sources/WorkspaceContactsCore/DirectoryClient.swift": {
+    "dependencies": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/DirectoryClient.d",
+    "object": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/DirectoryClient.swift.o",
+    "swiftmodule": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/DirectoryClient~partial.swiftmodule",
+    "swift-dependencies": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/DirectoryClient.swiftdeps"
+  },
+  "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/Sources/WorkspaceContactsCore/DirectoryPerson.swift": {
+    "dependencies": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/DirectoryPerson.d",
+    "object": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/DirectoryPerson.swift.o",
+    "swiftmodule": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/DirectoryPerson~partial.swiftmodule",
+    "swift-dependencies": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/DirectoryPerson.swiftdeps"
+  },
+  "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/Sources/WorkspaceContactsCore/PeopleAPIResponse.swift": {
+    "dependencies": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/PeopleAPIResponse.d",
+    "object": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/PeopleAPIResponse.swift.o",
+    "swiftmodule": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/PeopleAPIResponse~partial.swiftmodule",
+    "swift-dependencies": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/PeopleAPIResponse.swiftdeps"
+  },
+  "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/Sources/WorkspaceContactsCore/PhoneNormalizer.swift": {
+    "dependencies": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/PhoneNormalizer.d",
+    "object": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/PhoneNormalizer.swift.o",
+    "swiftmodule": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/PhoneNormalizer~partial.swiftmodule",
+    "swift-dependencies": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/PhoneNormalizer.swiftdeps"
+  },
+  "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/Sources/WorkspaceContactsCore/WorkspaceContactsCore.swift": {
+    "dependencies": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/WorkspaceContactsCore.d",
+    "object": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/WorkspaceContactsCore.swift.o",
+    "swiftmodule": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/WorkspaceContactsCore~partial.swiftmodule",
+    "swift-dependencies": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCore.build/WorkspaceContactsCore.swiftdeps"
+  }
+}

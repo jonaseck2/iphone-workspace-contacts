@@ -1,0 +1,11 @@
+{
+  "": {
+    "swift-dependencies": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCorePackageTests.build/master.swiftdeps"
+  },
+  "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCorePackageTests.derived/runner.swift": {
+    "dependencies": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCorePackageTests.build/runner.d",
+    "object": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCorePackageTests.build/runner.swift.o",
+    "swiftmodule": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCorePackageTests.build/runner~partial.swiftmodule",
+    "swift-dependencies": "/Users/jonas.ahnstedt/git/iphone-workspace-contacts/.claude/worktrees/workspace-contacts-core/Core/.build/arm64-apple-macosx/debug/WorkspaceContactsCorePackageTests.build/runner.swiftdeps"
+  }
+}
