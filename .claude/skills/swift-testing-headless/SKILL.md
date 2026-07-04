@@ -10,7 +10,9 @@ description: >
 
 # Swift package testing under Command Line Tools (no Xcode)
 
-Verified 2026-07 in this repo's environment.
+Verified 2026-07 in this repo's environment. **Updated 2026-07 for the Swift 6.3 / Xcode 26
+CLT toolchain** — bare `swift test` no longer runs swift-testing tests here; see "The run
+problem" below. In this repo, just run **`make test`** in `Core/` (encapsulates the fix).
 
 ## The constraint
 
@@ -68,14 +70,60 @@ let package = Package(
 
 No extra package dependency is needed — SwiftPM links `Testing` automatically.
 
+## The run problem (Swift 6.3 / Xcode 26 CLT) and the fix
+
+On this toolchain the CLT ships the swift-testing **module interface** but not on the default
+runtime search path, and there are two distinct failures:
+
+1. **Load failure** — a built test bundle dies with
+   `Library not loaded: @rpath/Testing.framework/...` (then `@rpath/lib_TestingInterop.dylib`).
+   The swift-testing runner runs under a **SIP-protected helper that strips `DYLD_*`**, so
+   `DYLD_FRAMEWORK_PATH` can't fix it.
+2. **Run-phase skip** — even once it loads, a **bare `swift test` runs zero tests and exits 0**.
+   SwiftPM decides whether to run its swift-testing phase by probing for the module via a
+   **command-line** search flag; a manifest `swiftSettings` `-F` compiles fine but doesn't flip
+   that decision. Passing `-Xswiftc -F <clt-frameworks>` on the command line does.
+
+**Fix, split across two places (both already applied in `Core/`):**
+
+- **`Package.swift`** solves the load failure by baking the CLT frameworks dir into the test
+  target's framework search path *and* `@rpath` (guarded by a `FileManager` existence check so
+  it's a no-op on full Xcode):
+
+  ```swift
+  import Foundation
+  let cltFrameworks = "/Library/Developer/CommandLineTools/Library/Developer/Frameworks"
+  let cltInteropDir = "/Library/Developer/CommandLineTools/Library/Developer/usr/lib"
+  var testSwiftSettings: [SwiftSetting] = []
+  var testLinkerSettings: [LinkerSetting] = []
+  if FileManager.default.fileExists(atPath: cltFrameworks + "/Testing.framework") {
+      testSwiftSettings.append(.unsafeFlags(["-F", cltFrameworks]))
+      testLinkerSettings.append(.unsafeFlags([
+          "-F", cltFrameworks,
+          "-Xlinker", "-rpath", "-Xlinker", cltFrameworks,
+          "-Xlinker", "-rpath", "-Xlinker", cltInteropDir,
+      ]))
+  }
+  // ...testTarget(..., swiftSettings: testSwiftSettings, linkerSettings: testLinkerSettings)
+  ```
+  Note `-rpath` must be passed as `-Xlinker -rpath -Xlinker <path>`; a bare `-rpath` in
+  `unsafeFlags` errors with `unknown argument: '-rpath'`.
+
+- **`Core/Makefile`** solves the run-phase skip by passing the command-line trigger:
+  `swift test -Xswiftc -F -Xswiftc <clt-frameworks>`. No framework copying needed.
+
 ## Run
 
 ```bash
-cd <package-dir> && swift test              # all tests
-cd <package-dir> && swift test --filter MyThingTests   # one suite
+cd Core && make test                       # all tests (uses the fix)
+cd Core && make test FILTER=MyThingTests   # one suite
 ```
 
 Passing output ends with: `✔ Test run with N tests passed`.
+
+(If a full Xcode is installed but `xcode-select` points at CLT, you *could* switch with
+`sudo xcode-select -s /Applications/Xcode.app` + `sudo xcodebuild -license accept` — but that's
+a sudo/license action for the developer to take, and `make test` avoids needing it.)
 
 ## Note on the app target
 
