@@ -3,7 +3,9 @@ import Foundation
 @testable import WorkspaceContacts
 import WorkspaceContactsCore
 
-@Suite struct SyncStoreTests {
+// .serialized: tests share one UserDefaults suite; swift-testing runs tests in parallel by
+// default, which races on that shared store. Serialize them.
+@Suite(.serialized) struct SyncStoreTests {
     private func freshDefaults() -> UserDefaults {
         let d = UserDefaults(suiteName: "SyncStoreTests")!
         d.removePersistentDomain(forName: "SyncStoreTests")
