@@ -12,3 +12,5 @@ CLAUDE.local.md
 .build/
 # SwiftPM / Xcode per-user metadata
 .swiftpm/
+# subagent-driven-development scratch/ledger
+.superpowers/
