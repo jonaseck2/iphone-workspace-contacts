@@ -1,7 +1,7 @@
 import Foundation
 
 /// A record of a contact we previously wrote, used to diff against a fresh fetch.
-public struct SyncedContactRef: Equatable {
+public struct SyncedContactRef: Equatable, Codable, Sendable {
     public let resourceName: String
     public let contactIdentifier: String
     public let contentHash: String
