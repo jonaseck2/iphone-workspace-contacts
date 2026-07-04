@@ -1,9 +1,9 @@
 // Core/Tests/WorkspaceContactsCoreTests/ScaffoldTests.swift
-import XCTest
+import Testing
 @testable import WorkspaceContactsCore
 
-final class ScaffoldTests: XCTestCase {
-    func test_packageVersionIsSet() {
-        XCTAssertEqual(WorkspaceContactsCore.version, "0.1.0")
+@Suite struct ScaffoldTests {
+    @Test func packageVersionIsSet() {
+        #expect(WorkspaceContactsCore.version == "0.1.0")
     }
 }
