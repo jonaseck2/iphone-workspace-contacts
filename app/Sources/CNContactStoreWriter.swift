@@ -7,7 +7,9 @@ enum ContactWriteError: Error, Equatable {
 
 /// Live `ContactStoreWriting` over CNContactStore. Tags every contact into a dedicated
 /// "Imeto Directory" CNGroup (the source of truth for "remove all").
-struct CNContactStoreWriter: ContactStoreWriting {
+// @unchecked Sendable: CNContactStore is documented thread-safe; the struct's only stored
+// property is that store, so it is safe to share across isolation domains.
+struct CNContactStoreWriter: ContactStoreWriting, @unchecked Sendable {
     static let groupName = "Imeto Directory"
     static let companyName = "Imeto"
 
