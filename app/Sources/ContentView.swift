@@ -119,16 +119,34 @@ struct ContentView: View {
 
     private var list: some View {
         List(model.people, id: \.resourceName) { person in
-            VStack(alignment: .leading, spacing: 2) {
-                Text(person.displayName).font(.body)
-                if let title = person.organizationTitle {
-                    Text(title).font(.caption).foregroundStyle(.secondary)
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(person.displayName).font(.body)
+                    if let title = person.organizationTitle {
+                        Text(title).font(.caption).foregroundStyle(.secondary)
+                    }
+                    if let phone = person.phoneNumbers.first {
+                        Text(phone).font(.caption2).foregroundStyle(.secondary)
+                    }
                 }
-                if let phone = person.phoneNumbers.first {
-                    Text(phone).font(.caption2).foregroundStyle(.secondary)
-                }
+                Spacer()
+                syncBadge(for: person)
             }
         }
         .refreshable { await model.refresh() }
+    }
+
+    /// Per-row indicator: on the device (synced to Contacts) vs directory-only (Google cloud).
+    @ViewBuilder
+    private func syncBadge(for person: DirectoryPerson) -> some View {
+        if model.syncedResourceNames.contains(person.resourceName) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+                .accessibilityLabel("Synced to Contacts")
+        } else {
+            Image(systemName: "icloud")
+                .foregroundStyle(.secondary)
+                .accessibilityLabel("Directory only (not on this device)")
+        }
     }
 }

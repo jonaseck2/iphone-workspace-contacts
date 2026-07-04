@@ -24,6 +24,8 @@ final class AppModel: ObservableObject {
     @Published private(set) var authState: AuthState = .signedOut
     @Published private(set) var consentGiven: Bool
     @Published private(set) var syncStatus: SyncStatus = .idle
+    /// resourceNames currently written to the device address book (drives the per-row synced badge).
+    @Published private(set) var syncedResourceNames: Set<String> = []
 
     private let auth: AuthService
     private let client: DirectoryClient
@@ -39,6 +41,12 @@ final class AppModel: ObservableObject {
         self.syncStore = syncStore
         self.syncService = syncService
         self.consentGiven = syncStore.consentGiven
+        self.syncedResourceNames = Set(syncStore.load().refs.map(\.resourceName))
+    }
+
+    /// Reload the synced-badge set from persisted refs (the source of truth for what's on-device).
+    private func reloadSyncedSet() {
+        syncedResourceNames = Set(syncStore.load().refs.map(\.resourceName))
     }
 
     func restore() async {
@@ -63,6 +71,7 @@ final class AppModel: ObservableObject {
         people = []
         status = .idle
         syncStatus = .idle
+        syncedResourceNames = []
     }
 
     func refresh() async {
@@ -98,6 +107,7 @@ final class AppModel: ObservableObject {
         do {
             try syncService.removeAll()
             syncStatus = .idle
+            reloadSyncedSet()
         } catch {
             syncStatus = .failed(error.localizedDescription)
         }
@@ -118,5 +128,6 @@ final class AppModel: ObservableObject {
         } catch {
             syncStatus = .failed(error.localizedDescription)
         }
+        reloadSyncedSet()
     }
 }
