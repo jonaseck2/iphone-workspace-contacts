@@ -13,7 +13,10 @@ _Actively building. Link the active plan._
   Core logic package shipped ✅ (see archive).
 - **App Plan A — signed-in directory list**:
   [`plans/2026-07-04-workspace-contacts-app-signin.md`](plans/2026-07-04-workspace-contacts-app-signin.md).
-  XcodeGen + GoogleSignIn auth + live fetch + SwiftUI list. **Needs full Xcode to build/run.**
+  XcodeGen + GoogleSignIn auth + live fetch + SwiftUI list. **All code authored (21/27 steps);
+  Core `EmailDomain` verified headless (`make test` → 27 tests).** 6 developer-only steps remain:
+  XcodeGen generate, `xcodebuild`/Cmd-U, and the Simulator sign-in→list milestone — **needs full
+  Xcode + the Google Cloud OAuth client id.**
 
 ## Next
 
