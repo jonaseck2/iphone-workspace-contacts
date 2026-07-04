@@ -1,4 +1,5 @@
 // app/Sources/ContactSyncService.swift
+import Contacts
 import Foundation
 import WorkspaceContactsCore
 
@@ -8,6 +9,8 @@ struct ContactSyncSummary: Equatable {
     let deleted: Int
     let failed: Int
 }
+
+enum ContactSyncError: Error { case accessDenied }
 
 /// Orchestrates one sync run: diff the full directory against persisted refs, apply to Contacts,
 /// persist the new refs. Full-fetch diffing (ContactSync.plan is a full-set diff).
@@ -26,12 +29,16 @@ final class ContactSyncService {
 
     /// Diff `people` (the complete directory) against persisted refs and apply.
     func sync(people: [DirectoryPerson]) throws -> ContactSyncSummary {
-        var state = store.load()
-        let ops = ContactSync.plan(existing: state.refs, fetched: people, defaultCountryCode: defaultCountryCode)
-        let result = ContactSyncExecutor.apply(ops, using: writer, existing: state.refs,
-                                               defaultCountryCode: defaultCountryCode)
-        state.refs = result.refs
-        store.save(state)
+        guard CNContactStore.authorizationStatus(for: .contacts) == .authorized else {
+            throw ContactSyncError.accessDenied
+        }
+        let existing = store.load().refs
+        let ops = ContactSync.plan(existing: existing, fetched: people, defaultCountryCode: defaultCountryCode)
+        let result = ContactSyncExecutor.apply(
+            ops, using: writer, existing: existing, defaultCountryCode: defaultCountryCode,
+            checkpoint: { [store] refs in store.save(SyncState(refs: refs)) }
+        )
+        store.save(SyncState(refs: result.refs))
 
         var created = 0, updated = 0, deleted = 0
         for op in ops {

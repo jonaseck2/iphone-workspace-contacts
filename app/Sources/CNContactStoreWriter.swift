@@ -1,10 +1,6 @@
 import Contacts
 import WorkspaceContactsCore
 
-enum ContactWriteError: Error, Equatable {
-    case notFound(String)
-}
-
 /// Live `ContactStoreWriting` over CNContactStore. Tags every contact into a dedicated
 /// "Imeto Directory" CNGroup (the source of truth for "remove all").
 // @unchecked Sendable: CNContactStore is documented thread-safe; the struct's only stored
@@ -34,7 +30,7 @@ struct CNContactStoreWriter: ContactStoreWriting, @unchecked Sendable {
     func update(identifier: String, with person: DirectoryPerson) throws {
         guard let existing = try? store.unifiedContact(withIdentifier: identifier, keysToFetch: Self.fetchKeys),
               let mutable = existing.mutableCopy() as? CNMutableContact else {
-            throw ContactWriteError.notFound(identifier)
+            throw ContactStoreError.notFound(identifier)
         }
         Self.apply(person, to: mutable)
         let save = CNSaveRequest()
@@ -46,7 +42,7 @@ struct CNContactStoreWriter: ContactStoreWriting, @unchecked Sendable {
         guard let existing = try? store.unifiedContact(withIdentifier: identifier,
                                                        keysToFetch: [CNContactIdentifierKey as CNKeyDescriptor]),
               let mutable = existing.mutableCopy() as? CNMutableContact else {
-            throw ContactWriteError.notFound(identifier)
+            throw ContactStoreError.notFound(identifier)
         }
         let save = CNSaveRequest()
         save.delete(mutable)

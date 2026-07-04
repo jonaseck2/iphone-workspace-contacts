@@ -1,5 +1,10 @@
 import Foundation
 
+/// A store operation targeted a contact that no longer exists (e.g. the user deleted it).
+public enum ContactStoreError: Error, Equatable {
+    case notFound(String)
+}
+
 /// Abstract seam over the platform address book so the apply logic stays pure and headless-testable.
 /// The live implementation (CNContactStore) lives in the app target.
 public protocol ContactStoreWriting: Sendable {
@@ -32,7 +37,8 @@ public enum ContactSyncExecutor {
         _ ops: [ContactOp],
         using store: ContactStoreWriting,
         existing: [SyncedContactRef],
-        defaultCountryCode: String
+        defaultCountryCode: String,
+        checkpoint: ((_ refs: [SyncedContactRef]) -> Void)? = nil
     ) -> ExecutionResult {
         var byResource = Dictionary(existing.map { ($0.resourceName, $0) }, uniquingKeysWith: { a, _ in a })
         var resourceByIdentifier = Dictionary(existing.map { ($0.contactIdentifier, $0.resourceName) },
@@ -48,6 +54,7 @@ public enum ContactSyncExecutor {
                         resourceName: person.resourceName, contactIdentifier: id,
                         contentHash: person.contentHash(defaultCountryCode: defaultCountryCode))
                     resourceByIdentifier[id] = person.resourceName
+                    checkpoint?(Array(byResource.values))
                 } catch { failures.append(Failure(op: op, message: "\(error)")) }
 
             case .update(let identifier, let person):
@@ -56,13 +63,29 @@ public enum ContactSyncExecutor {
                     byResource[person.resourceName] = SyncedContactRef(
                         resourceName: person.resourceName, contactIdentifier: identifier,
                         contentHash: person.contentHash(defaultCountryCode: defaultCountryCode))
-                } catch { failures.append(Failure(op: op, message: "\(error)")) }
+                    checkpoint?(Array(byResource.values))
+                } catch {
+                    // Stale identifier (contact deleted by the user): drop the ref so the next sync recreates it.
+                    if case ContactStoreError.notFound = error {
+                        byResource[person.resourceName] = nil
+                        checkpoint?(Array(byResource.values))
+                    }
+                    failures.append(Failure(op: op, message: "\(error)"))
+                }
 
             case .delete(let identifier):
                 do {
                     try store.delete(identifier: identifier)
                     if let resource = resourceByIdentifier[identifier] { byResource[resource] = nil }
-                } catch { failures.append(Failure(op: op, message: "\(error)")) }
+                    checkpoint?(Array(byResource.values))
+                } catch {
+                    // Already gone: drop the stale ref too.
+                    if case ContactStoreError.notFound = error, let resource = resourceByIdentifier[identifier] {
+                        byResource[resource] = nil
+                        checkpoint?(Array(byResource.values))
+                    }
+                    failures.append(Failure(op: op, message: "\(error)"))
+                }
             }
         }
 

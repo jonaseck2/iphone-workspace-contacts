@@ -55,6 +55,8 @@ final class AppModel: ObservableObject {
 
     func signOut() async {
         // Always remove synced contacts on sign-out (product decision).
+        // Attempt to remove synced contacts. If Contacts access was revoked we can't remove them
+        // (an OS constraint) — sign-out still proceeds; contacts may remain until access is restored.
         try? syncService.removeAll()
         auth.signOut()
         authState = auth.state
@@ -90,7 +92,7 @@ final class AppModel: ObservableObject {
         await runSync()
     }
 
-    func syncNow() async { await runSync() }
+    func syncNow() async { await refresh() }
 
     func removeAllSyncedContacts() async {
         do {
@@ -102,11 +104,17 @@ final class AppModel: ObservableObject {
     }
 
     private func runSync() async {
+        guard case .loaded = status else { return }
         syncStatus = .syncing
         do {
             let summary = try syncService.sync(people: people)
-            syncStatus = .synced(count: people.count, at: Date())
-            _ = summary
+            if summary.failed > 0 {
+                syncStatus = .failed("\(summary.failed) contact(s) couldn't be saved.")
+            } else {
+                syncStatus = .synced(count: people.count, at: Date())
+            }
+        } catch ContactSyncError.accessDenied {
+            syncStatus = .permissionDenied
         } catch {
             syncStatus = .failed(error.localizedDescription)
         }

@@ -91,7 +91,11 @@ struct ContentView: View {
         case .failed(let msg):
             Label(msg, systemImage: "exclamationmark.triangle")
                 .font(.caption).foregroundStyle(.red).padding(.vertical, 4)
-        case .idle, .permissionDenied:
+        case .permissionDenied:
+            Label("Contacts access is off — enable it in Settings to keep syncing.",
+                  systemImage: "exclamationmark.triangle")
+                .font(.caption).foregroundStyle(.red).padding(.vertical, 4)
+        case .idle:
             EmptyView()
         }
     }
@@ -105,7 +109,7 @@ struct ContentView: View {
             Spacer()
             VStack(spacing: 12) {
                 Text(message).multilineTextAlignment(.center).foregroundStyle(.secondary)
-                Button("Try again") { Task { await model.syncNow(); await model.restore() } }
+                Button("Try again") { Task { await model.refresh() } }
             }.padding()
             Spacer()
         default:

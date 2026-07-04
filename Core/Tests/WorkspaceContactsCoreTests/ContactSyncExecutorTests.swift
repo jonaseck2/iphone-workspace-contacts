@@ -16,6 +16,8 @@ private final class FakeStore: ContactStoreWriting, @unchecked Sendable {
     var updated: [(String, DirectoryPerson)] = []
     var deleted: [String] = []
     var failCreateForResource: String? = nil
+    var failUpdateNotFound: Set<String> = []
+    var failDeleteNotFound: Set<String> = []
     private var counter = 0
 
     func create(_ person: DirectoryPerson) throws -> String {
@@ -24,8 +26,14 @@ private final class FakeStore: ContactStoreWriting, @unchecked Sendable {
         counter += 1
         return "id-\(counter)"
     }
-    func update(identifier: String, with person: DirectoryPerson) throws { updated.append((identifier, person)) }
-    func delete(identifier: String) throws { deleted.append(identifier) }
+    func update(identifier: String, with person: DirectoryPerson) throws {
+        if failUpdateNotFound.contains(identifier) { throw ContactStoreError.notFound(identifier) }
+        updated.append((identifier, person))
+    }
+    func delete(identifier: String) throws {
+        if failDeleteNotFound.contains(identifier) { throw ContactStoreError.notFound(identifier) }
+        deleted.append(identifier)
+    }
 }
 
 @Suite struct ContactSyncExecutorTests {
@@ -75,5 +83,35 @@ private final class FakeStore: ContactStoreWriting, @unchecked Sendable {
         #expect(result.failures.first?.op == .create(p1))
         // p2 still created despite p1 failing
         #expect(result.refs.map(\.resourceName) == ["people/2"])
+    }
+
+    @Test func updateNotFoundDropsRefSoNextSyncRecreates() {
+        let store = FakeStore()
+        store.failUpdateNotFound = ["dead-1"]
+        let p = person("1", phone: "0701234567", name: "Ada")
+        let existing = [SyncedContactRef(resourceName: "people/1", contactIdentifier: "dead-1", contentHash: "old")]
+        let result = ContactSyncExecutor.apply(
+            [.update(contactIdentifier: "dead-1", p)], using: store, existing: existing, defaultCountryCode: code)
+        #expect(result.failures.count == 1)
+        #expect(result.refs.isEmpty)
+    }
+
+    @Test func deleteNotFoundDropsStaleRef() {
+        let store = FakeStore()
+        store.failDeleteNotFound = ["gone-1"]
+        let existing = [SyncedContactRef(resourceName: "people/1", contactIdentifier: "gone-1", contentHash: "h")]
+        let result = ContactSyncExecutor.apply(
+            [.delete(contactIdentifier: "gone-1")], using: store, existing: existing, defaultCountryCode: code)
+        #expect(result.refs.isEmpty)
+    }
+
+    @Test func checkpointFiresPerSuccessfulOp() {
+        let store = FakeStore()
+        var checkpoints = 0
+        let p1 = person("1", phone: "0701234567", name: "Ada")
+        let p2 = person("2", phone: "0709999999", name: "Bea")
+        _ = ContactSyncExecutor.apply([.create(p1), .create(p2)], using: store, existing: [],
+                                      defaultCountryCode: code, checkpoint: { _ in checkpoints += 1 })
+        #expect(checkpoints == 2)
     }
 }
