@@ -1,9 +1,16 @@
 # CLAUDE.md
 
-Starter template for building small projects mostly agentically with Claude Code.
-This file is loaded into every session and every subagent — it's the shared brief.
+**WorkspaceContacts** — an iOS app that syncs the Imeto Google Workspace directory into iPhone
+Contacts so colleagues show up by name on incoming calls (see [`README.md`](README.md) for what it
+is and how to build it). This file is loaded into every session and every subagent — it's the
+shared brief for *how we work on it*.
 
-## What this template gives you
+Built mostly agentically with Claude Code, using the workflow below. That workflow — the rules and
+skills in [`.claude/`](.claude/) — comes from the
+[Imeto Claude project template](https://github.com/imeto-consulting/claude-project-template);
+generic improvements to it should flow back there.
+
+## How this repo works
 
 - **Superpowers** (`superpowers@claude-plugins-official`) — the brainstorm → spec → plan →
   implement workflow, enabled in `.claude/settings.json`.
@@ -37,7 +44,7 @@ stays enabled across sessions.
 
 ## The workflow — verification first
 
-The one lesson behind this template: **get verification in early.** A project you can prove
+The one lesson behind this workflow: **get verification in early.** A project you can prove
 works end-to-end is a project you can ship agentically without second-guessing. So:
 
 1. **Brainstorm.** Start with the `superpowers:brainstorming` skill. Use stream-of-thought —
@@ -52,11 +59,13 @@ works end-to-end is a project you can ship agentically without second-guessing. 
    subagent, follow [`subagent-handoff`](.claude/skills/subagent-handoff/SKILL.md): carry the
    goal in, prove the outcome before marking done. Keep the verification check green.
 4. **Close out.** When every box is `- [x]`, run the [`close-out`](.claude/skills/close-out/SKILL.md)
-   skill: capture evidence, archive the plan to `docs/plans/archive/`, update the roadmaps.
+   skill: capture evidence, archive the plan (and its design spec), update the roadmaps and the
+   README. Remember: green tests mean the code works, not that anyone can use it yet — if getting
+   it to its users is a separate step, that step is still open work.
 5. **Capture what you learned.** When you land on a pattern or convention worth keeping, ask
    Claude to turn it into a skill (`skill-creator`) or a rule in `.claude/rules/`. Every few
    plans, run [`retro`](.claude/skills/retro/SKILL.md) to catch workflow drift and fix the rules
-   that didn't fire. The template gets smarter with each project.
+   that didn't fire. Push generic improvements back to the template so the next project inherits them.
 
 ## Conventions
 
@@ -66,3 +75,6 @@ works end-to-end is a project you can ship agentically without second-guessing. 
   structure when a real need shows up, not in anticipation.
 - **Evidence over assertion.** "Tests pass" means you ran them and saw the count. Don't claim
   done without proof.
+- **Done means delivered.** Think end-to-end: the goal isn't "the code works," it's "the people
+  it's for can use it." Verification proves the first; delivery (publish/deploy/hand-off) closes
+  the second. A build plan closing out is not the project finishing.

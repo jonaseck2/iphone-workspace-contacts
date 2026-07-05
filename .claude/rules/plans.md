@@ -39,6 +39,15 @@ A spec still in `docs/plans/` after its implementation has fully shipped is drif
 1. **Goal** — user-observable outcome, plain language, not mechanism.
 2. **Scope** — what's in, and explicitly what's out.
 3. **Verification** — a runnable check (test or command + expected output). Lint-only ≠ verified.
+   Two things a verification skips at its peril:
+   - **Prerequisites.** Name what must be true in the *environment* for the check to run — external
+     services enabled, credentials/signing set up, admin/config toggles flipped. If the reader has
+     to discover a setup step by hitting the error, it belonged in the plan. Capture prerequisites
+     up front, not reactively.
+   - **Drive the real artifact.** If the thing has a runtime a user touches (an app, a CLI, an
+     endpoint), the check exercises *that*, not only unit tests underneath it. Unit-green while the
+     built product is broken (wrong name on screen, a button that does nothing) is the classic gap
+     manual testing catches too late.
 
 ## Failure modes / RCA — when the plan follows a failure
 

@@ -37,7 +37,13 @@ See `.claude/rules/plans.md` for the rules this enforces.
 4. **Update the roadmaps.** Remove the plan's line from `docs/ROADMAP.md` (Now/Next), and
    append it to `docs/plans/archive/ROADMAP.md` (newest first) with a one-line outcome.
 
-5. **Commit, with the evidence in the message.**
+5. **Keep the user-facing docs honest.** If this plan changed *what the project does*, *how you
+   build or run it*, or *its status*, update `README.md` to match — a README that still describes
+   an earlier version of the project (or the template it was forked from) is drift, and the last
+   plan to touch that surface is the one that owns the fix. Same for `CLAUDE.md` if its top-line
+   description no longer fits the project.
+
+6. **Commit, with the evidence in the message.**
    ```bash
    git add -A
    git commit -m "chore: close out <feature>
@@ -50,3 +56,9 @@ See `.claude/rules/plans.md` for the rules this enforces.
 
 Not a smoke check, not a vibe check. The point is that the user-observable goal in the
 plan's **Goal** section is provably met before the plan leaves `docs/plans/`.
+
+**Green ≠ delivered.** Tests passing means the code works; it does not mean the people the plan
+was *for* can use it. If the Goal implies someone using the thing and getting it to them is a
+separate step (publish, deploy, distribute, hand off), closing out the build plan is not the end —
+make sure that delivery is tracked on `docs/ROADMAP.md` as its own active thread, not quietly
+assumed done. A project isn't finished until it's in its users' hands.
