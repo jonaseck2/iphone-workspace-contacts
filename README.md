@@ -99,10 +99,11 @@ for shipped plans with their verification evidence.
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | Now / Next / Later |
 | [`docs/plans/`](docs/plans/) | Specs and active plans; [`archive/`](docs/plans/archive/) holds shipped ones |
 | [`docs/rollout/`](docs/rollout/) | Privacy policy, App Store privacy answers, colleague onboarding note |
-| [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | How this repo is built — the agentic Claude Code workflow, rules, and skills |
 
 ## How this repo is developed
 
 This project is built **mostly agentically with Claude Code**, using a brainstorm → plan → build →
-verify → close-out loop with verification baked in from the start. The full workflow, and the rules
-and skills that enforce it, are documented in [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
+verify → close-out loop with verification baked in from the start. That workflow — and the rules and
+skills in [`.claude/`](.claude/) that enforce it — comes from the
+[Imeto Claude project template](https://github.com/imeto-consulting/claude-project-template); see
+its README for the full explanation.
